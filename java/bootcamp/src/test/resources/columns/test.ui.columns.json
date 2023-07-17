@@ -1,0 +1,12 @@
+[
+	{
+		"name": "i18n.testPage.filters.name",
+		"prop": "name",
+		"propertyOrder": "filters.name"
+	},
+	{
+		"name": "i18n.testPage.filters.description",
+		"prop": "description",
+		"propertyOrder": "filters.description"
+	}
+]

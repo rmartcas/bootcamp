@@ -1,0 +1,24 @@
+[{
+	"name": "button.new",
+	"icon": "plus",
+	"handler": "onNew",
+	"roles": ["ROLE_WRITE_AUTHORITIES"]
+},{
+	"name": "button.edit",
+	"icon": "pencil-alt",
+	"handler": "onEdit",
+	"roles": ["ROLE_READ_AUTHORITIES"],
+	"rowButton": true
+},{
+	"name": "button.remove",
+	"icon": "trash",
+	"handler": "onDelete",
+	"roles": ["ROLE_WRITE_AUTHORITIES"],
+	"rowButton": true
+},{
+	"name": "button.download.excel",
+	"icon": "file-excel",
+	"handler": "onExport",
+	"roles": ["ROLE_READ_AUTHORITIES"]
+}
+]

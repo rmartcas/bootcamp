@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.12</version>
+		<relativePath />
+	</parent>
+	
+	<groupId>com.nttdata</groupId>
+	<artifactId>bootcamp-parent</artifactId>
+	<version>0.0.1</version>
+	<packaging>pom</packaging>
+	<name>bootcamp-parent</name>
+	<description>
+		Parent POM for all artifacts, projects and applications.
+		Contains shared elements like dependencies, plugins, reporting, properties...
+		Set versions of required dependencies.
+		All applications and artifacts must inherit from this.
+	</description>
+	<url>https://github.com/rmartcas/bootcamp</url>
+	
+	<properties>
+		<!-- Compiler properties -->
+		<javac.src.version>11</javac.src.version>
+		<javac.target.version>11</javac.target.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.javadoc.outputEncoding>UTF-8</project.javadoc.outputEncoding>
+        
+		<!-- Package name -->
+		<project.final.name>bootcamp</project.final.name>
+
+		<!-- Settings for sonar sources and test -->
+		<sonar.sources>pom.xml,src/main/java</sonar.sources>
+		<sonar.tests>src/test/java</sonar.tests>
+		<sonar.test.inclusions>**/*Test*.java</sonar.test.inclusions>
+		<sonar.coverage.jacoco.xmlReportPaths>bootcamp/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+		
+		<!-- Plugin versions -->
+		<jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+		<lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
+		<maven-plugin-plugin.version>3.8.2</maven-plugin-plugin.version>
+		<maven-project-info-reports-plugin.version>3.4.5</maven-project-info-reports-plugin.version>
+		<maven-site-plugin.version>3.12.1</maven-site-plugin.version>
+		<dependency-check-maven.version>8.1.2</dependency-check-maven.version>
+		<pitest-maven.version>1.13.1</pitest-maven.version>
+		<pitest-junit5-plugin.version>1.1.2</pitest-junit5-plugin.version>
+		
+		<!-- Test result settings -->
+		<jacoco.execution.data.dir>${project.build.directory}/coverage-reports</jacoco.execution.data.dir>
+		<jacoco.it.execution.data.file>${jacoco.execution.data.dir}/jacoco-it.exec</jacoco.it.execution.data.file>
+		<jacoco.ut.execution.data.file>${jacoco.execution.data.dir}/jacoco-ut.exec</jacoco.ut.execution.data.file>
+		<jacoco.execution.data.file>${project.build.directory}/jacoco.exec</jacoco.execution.data.file>
+		
+		<jacoco.it.execution.report.dir>${project.build.directory}/site/jacoco/jacoco-it</jacoco.it.execution.report.dir>
+		<jacoco.ut.execution.report.dir>${project.build.directory}/site/jacoco/jacoco-ut</jacoco.ut.execution.report.dir>
+		<jacoco.execution.report.dir>${project.build.directory}/site/jacoco</jacoco.execution.report.dir>
+		
+		<!-- By default skip mutation test over unit and integration tests -->
+		<skip.ut.mutation.test>true</skip.ut.mutation.test>
+		<skip.it.mutation.test>true</skip.it.mutation.test>
+		
+		<!-- Dependencies versions -->
+		<commons-beanutils.version>1.9.4</commons-beanutils.version>
+		<doxia-module-markdown.version>1.12.0</doxia-module-markdown.version>
+		<edb.version>42.2.12.3</edb.version>
+		<ehcache-web.version>2.0.4</ehcache-web.version>
+		<equalsverifier.version>3.14.1</equalsverifier.version>
+		<framework.version>3.0.4</framework.version>
+		<guava.version>31.1-jre</guava.version>
+		<hdiv.version>3.5.2</hdiv.version>
+		<jasperreports.version>6.17.0</jasperreports.version>
+		<logback-ecs-encoder.version>1.5.0</logback-ecs-encoder.version>
+		<mybatis-spring-boot-starter.version>2.3.1</mybatis-spring-boot-starter.version>
+		<ojdbc8.version>12.2.0.1</ojdbc8.version>
+		<org.opensaml.version>4.3.0</org.opensaml.version>
+		<poi-ooxml.version>5.2.3</poi-ooxml.version>
+		<resilience4j.version>3.0.2</resilience4j.version>
+		<swagger.version>1.7.0</swagger.version>
+		<testcontainers.version>1.17.6</testcontainers.version>
+		<xmlsec.version>2.3.3</xmlsec.version>
+	</properties>
+
+	<dependencyManagement>
+		<!-- Optional dependencies for projects. Must include it manually when required -->		
+		<dependencies>
+			<!-- Dependencias para test -->
+			<dependency>
+	    		<groupId>nl.jqno.equalsverifier</groupId>
+	    		<artifactId>equalsverifier</artifactId>
+	    		<version>${equalsverifier.version}</version>
+	    		<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+    			<groupId>org.testcontainers</groupId>
+				<artifactId>postgresql</artifactId>
+    			<version>${testcontainers.version}</version>
+    			<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+    			<groupId>org.testcontainers</groupId>
+	    		<artifactId>oracle-xe</artifactId>
+    			<version>${testcontainers.version}</version>
+    			<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+	            <artifactId>junit-jupiter</artifactId>
+	            <version>${testcontainers.version}</version>
+	            <scope>test</scope>
+	        </dependency>
+	        
+	        <!-- Dependencias para los proyectos -->
+
+			<dependency>
+			    <groupId>co.elastic.logging</groupId>
+		    	<artifactId>logback-ecs-encoder</artifactId>
+		    	<version>${logback-ecs-encoder.version}</version>
+			</dependency>
+			
+			<dependency>
+	            <groupId>org.opensaml</groupId>
+	            <artifactId>opensaml-core</artifactId>
+	            <version>${org.opensaml.version}</version>
+	        </dependency>
+	        
+	        <dependency>
+	            <groupId>org.opensaml</groupId>
+	            <artifactId>opensaml-saml-api</artifactId>
+	            <version>${org.opensaml.version}</version>
+	        </dependency>
+	        
+	        <dependency>
+	            <groupId>org.opensaml</groupId>
+	            <artifactId>opensaml-saml-impl</artifactId>
+	            <version>${org.opensaml.version}</version>
+	        </dependency>
+	        
+	        <!-- Hdiv -->
+			<dependency>
+				<groupId>org.hdiv</groupId>
+				<artifactId>hdiv-config</artifactId>
+				<version>${hdiv.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.hdiv</groupId>
+				<artifactId>hdiv-spring-mvc</artifactId>
+				<version>${hdiv.version}</version>
+			</dependency>
+			
+			<!-- EhCache -->
+			<dependency>
+				<groupId>net.sf.ehcache</groupId>
+				<artifactId>ehcache-web</artifactId>
+				<version>${ehcache-web.version}</version>	
+				<exclusions>
+					<exclusion>
+						<groupId>net.sf.ehcache</groupId>
+						<artifactId>ehcache-core</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			
+			<!-- Mybatis -->
+			<dependency>
+				<groupId>org.mybatis.spring.boot</groupId>
+				<artifactId>mybatis-spring-boot-starter</artifactId>
+				<version>${mybatis-spring-boot-starter.version}</version>
+			</dependency>
+			
+			<dependency>
+	            <groupId>commons-beanutils</groupId>
+	            <artifactId>commons-beanutils</artifactId>
+	            <version>${commons-beanutils.version}</version>
+	        </dependency>
+		
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+				<version>${resilience4j.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-ui</artifactId>
+				<version>${swagger.version}</version>
+			</dependency>
+
+			<dependency>
+	      		<groupId>com.google.guava</groupId>
+	      		<artifactId>guava</artifactId>
+	      		<version>${guava.version}</version>
+	    	</dependency>
+	    	
+	    	<dependency>
+	    		<groupId>com.oracle</groupId>
+				<artifactId>ojdbc8</artifactId>
+				<version>${ojdbc8.version}</version>
+	    	</dependency>
+			
+			<dependency>
+				<groupId>jasperreports</groupId>
+				<artifactId>jasperreports</artifactId>
+				<version>${jasperreports.version}</version>
+			</dependency>
+    		
+			<dependency>
+    			<groupId>org.apache.poi</groupId>
+    			<artifactId>poi-ooxml</artifactId>
+    			<version>${poi-ooxml.version}</version>
+			</dependency>
+			
+			<!-- Optional - Only when dataource url is like jdbc:edb... -->
+			<dependency>
+				<groupId>com.edb</groupId>
+				<artifactId>edb</artifactId>
+				<version>${edb.version}</version>
+				<optional>true</optional>
+			</dependency>
+			
+			<dependency>
+                <groupId>org.apache.santuario</groupId>
+                <artifactId>xmlsec</artifactId>
+                <version>${xmlsec.version}</version>
+        	</dependency>
+		</dependencies>
+	</dependencyManagement>
+	
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-plugin-plugin</artifactId>
+				<version>${maven-plugin-plugin.version}</version>
+				<configuration>
+					<goalPrefix>${plugin.goal.prefix}</goalPrefix>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>${maven-project-info-reports-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<configuration>
+					<sourcepath>${project.build.directory}/delombok</sourcepath>
+				</configuration>
+			</plugin>
+			<plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${dependency-check-maven.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+		</plugins>
+	</reporting>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+					<!-- To skip package without main class add a <configuration><skip>true</skip></configuration> -->
+			</plugin>
+			<plugin>
+			    <groupId>org.projectlombok</groupId>
+			    <artifactId>lombok-maven-plugin</artifactId>
+			    <version>${lombok-maven-plugin.version}</version>
+			    <configuration>
+			        <sourceDirectory>src/main/java</sourceDirectory>
+			        <addOutputDirectory>false</addOutputDirectory>
+			        <outputDirectory>${project.build.directory}/delombok</outputDirectory>
+			    </configuration>
+			    <executions>
+			        <execution>
+			            <phase>generate-sources</phase>
+			            <goals>
+			                <goal>delombok</goal>
+			            </goals>
+			        </execution>
+			    </executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>${maven-site-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.doxia</groupId>
+						<artifactId>doxia-module-markdown</artifactId>
+						<version>${doxia-module-markdown.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			
+			<plugin>
+				<!-- Unit tests -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkMode>once</forkMode>
+					<argLine>@{argLine} -Xmx1024m -XX:MaxPermSize=256m</argLine>
+					<useSystemClassLoader>true</useSystemClassLoader>
+					<useManifestOnlyJar>false</useManifestOnlyJar>
+					<testFailureIgnore>true</testFailureIgnore>
+					<!-- Excludes integration tests when unit tests are run. -->
+			        <excludes>
+			            <exclude>**/*TestIT.java</exclude>
+			            <exclude>**/*TestFT.java</exclude>
+			        </excludes>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<!-- Integration tests -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<argLine>@{argLine} -Xmx1024m -XX:MaxPermSize=256m</argLine>
+        			<reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+					<includes>
+						<include>**/*TestIT.java</include>
+					</includes>
+					<excludes>
+	            		<exclude>**/*Test.java</exclude>
+	            		<exclude>**/*TestFT.java</exclude>
+	        		</excludes>
+    			</configuration>
+    			<goals>
+   					<goal>integration-test</goal>
+    			</goals>
+				<executions>
+					<execution>
+						<id>functional-tests</id>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>**/*TestFT.java</include>
+							</includes>
+							<excludes>
+			            		<exclude>**/*Test.java</exclude>
+			            		<exclude>**/*TestIT.java</exclude>
+			        		</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>pre-unit-test</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <destFile>${jacoco.ut.execution.data.file}</destFile>
+                        </configuration>
+					</execution>
+					<execution>
+						<id>pre-integration-test</id>
+						<goals>
+							<goal>prepare-agent-integration</goal>
+						</goals>
+						<configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <destFile>${jacoco.it.execution.data.file}</destFile>
+                        </configuration>
+					</execution>
+					<execution>
+				  		<id>merge-unit-and-integration</id>
+				    	<phase>verify</phase>
+				      	<goals>
+				        	<goal>merge</goal>
+				      	</goals>
+				      	<configuration>
+				      		<fileSets>
+				        		<fileSet>
+				          			<directory>${jacoco.execution.data.dir}/</directory>
+				          			<includes>
+				            			<include>*.exec</include>
+				          			</includes>
+				        		</fileSet>
+				      		</fileSets>
+				      		<destFile>${jacoco.execution.data.file}</destFile>
+				    	</configuration>
+				  	</execution>
+				  	<execution>
+						<id>create-merged-report</id>
+					  	<phase>verify</phase>
+					  	<goals>
+					    	<goal>report-aggregate</goal>
+					  	</goals>
+					  	<configuration>
+							<includeCurrentProject>true</includeCurrentProject>
+					    	<outputDirectory>${jacoco.execution.report.dir}</outputDirectory>
+					  	</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${javac.src.version}</source>
+					<target>${javac.target.version}</target>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>${pitest-maven.version}</version>
+                <dependencies>
+		          <dependency>
+		            <groupId>org.pitest</groupId>
+		            <artifactId>pitest-junit5-plugin</artifactId>
+		            <version>${pitest-junit5-plugin.version}</version>
+		          </dependency>
+		        </dependencies>
+                <executions>
+                	<execution>
+                		<id>mutation-test-ut</id>
+                		<goals>
+                			<goal>mutationCoverage</goal>
+                		</goals>
+                		<configuration>
+				        	<skip>${skip.ut.mutation.test}</skip>
+				        </configuration>
+				        <phase>test</phase>
+                	</execution>
+                	<execution>
+                		<id>mutation-test-it</id>
+                		<goals>
+                			<goal>mutationCoverage</goal>
+                		</goals>
+                		<configuration>
+				        	<parseSurefireConfig>false</parseSurefireConfig>
+				        	<skip>${skip.it.mutation.test}</skip>
+				        	<targetTests>*TestIT*</targetTests>
+				        </configuration>
+				        <phase>verify</phase>
+                	</execution>
+				</executions>
+            </plugin>
+		</plugins>
+	</build>
+	
+	<modules>
+		<module>core-config</module>
+		<module>bootcamp</module>
+	</modules>
+	<issueManagement>
+		<url>https://github.com/rmartcas/bootcamp/issues</url>
+		<system>GitHub</system>
+	</issueManagement>
+	<distributionManagement>
+		<site>
+			<id>${project.artifactId}-site</id>
+			<url>${project.baseUri}</url>
+		</site>
+	</distributionManagement>
+	<scm>
+		<url>https://github.com/rmartcas/bootcamp</url>
+		<connection>scm:git:git://https://github.com/rmartcas/bootcamp</connection>
+		<developerConnection>scm:git:ssh://https://github.com/rmartcas/bootcamp</developerConnection>
+	</scm>
+	
+	<repositories>
+    	<repository>
+			<id>shibboleth</id>
+			<name>shibboleth</name>
+			<url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+		</repository>
+    </repositories>
+</project>

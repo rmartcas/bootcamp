@@ -1,0 +1,33 @@
+[
+	{
+		"name": "i18n.auditPage.filters.requestId",
+		"prop": "requestId",
+		"propertyOrder": "filters.requestId"
+	},
+	{
+		"name": "i18n.auditPage.filters.table",
+		"prop": "table",
+		"propertyOrder": "filters.table"
+	},
+	{
+		"name": "i18n.auditPage.filters.action",
+		"prop": "action",
+		"propertyOrder": "filters.action"
+	},
+	{
+		"name": "i18n.auditPage.filters.pairKey",
+		"prop": "pairKey",
+		"propertyOrder": "filters.pairKey"
+	},
+	{
+		"name": "i18n.auditPage.filters.user",
+		"prop": "user",
+		"propertyOrder": "filters.user"
+	},
+	{
+		"name": "i18n.auditPage.filters.created",
+		"prop": "created",
+		"propertyOrder": "filters.created",
+		"cellTemplate": "dateColumn"
+	}
+]

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nttdata.core.users.mapper.UserMapper">
+    
+    <resultMap id="simpleResultMap" type="com.nttdata.core.users.model.User">
+        <id column="USER_ID" property="id" />
+        <result column="USERNAME" property="username" />
+        <result column="NAME" property="name" />
+        <result column="EMAIL" property="email" />
+        <result column="PROFILE_ID" property="profile.id" />
+        <result column="PROFILE_NAME" property="profile.name" />
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.users.model.User" id="fullResultMap" extends="simpleResultMap">
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.users.model.UserPage" id="paginableResultMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="simpleResultMap" />
+    </resultMap>
+    
+    <select id="find" parameterType="com.nttdata.core.users.model.User" resultMap="fullResultMap">
+    	SELECT
+    		U.USER_ID, U.USERNAME, U.NAME, U.EMAIL, U.PROFILE_ID, P.NAME as PROFILE_NAME
+    	FROM 
+    		core_USERS U
+    	INNER JOIN core_PROFILES P ON U.PROFILE_ID = P.PROFILE_ID
+        WHERE U.USER_ID = #{id}
+    </select>
+    
+    <sql id="searchSQL">
+    	SELECT
+    		USER_ID, USERNAME, U.NAME, EMAIL, U.PROFILE_ID, P.NAME as PROFILE_NAME
+    	FROM core_USERS U
+    	INNER JOIN core_PROFILES P ON U.PROFILE_ID = P.PROFILE_ID
+    	<where>
+    		<if test="null != filters">
+	    		<if test="null != filters.username and !filters.username.isEmpty()">
+					AND <include refid="BASE.translate1" /> USERNAME <include refid="BASE.translate2_Aproximado" /> #{filters.username} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.name and !filters.name.isEmpty()">
+					AND <include refid="BASE.translate1" /> U.NAME <include refid="BASE.translate2_Aproximado" /> #{filters.name} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.email and !filters.email.isEmpty()">
+					AND <include refid="BASE.translate1" /> EMAIL <include refid="BASE.translate2_Aproximado" /> #{filters.email} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.profile and null != filters.profile.id">
+					AND U.PROFILE_ID = #{filters.profile.id}
+				</if>
+    		</if>
+    	</where>
+    </sql>
+    
+    <select id="search" parameterType="com.nttdata.core.users.model.UserPage" resultMap="paginableResultMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    <select id="export" parameterType="com.nttdata.core.users.model.UserPage" resultMap="simpleResultMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    <insert id="insert" parameterType="com.nttdata.core.users.model.User">
+    	<selectKey order="BEFORE" keyProperty="id" resultType="long">
+			SELECT nextval('sq_core_users')
+    	</selectKey>
+    	INSERT INTO core_USERS (USER_ID, NAME, USERNAME, EMAIL, PROFILE_ID) values (#{id}, #{name}, #{username}, #{email}, #{profile.id})
+    </insert>
+    
+    <update id="update" parameterType="com.nttdata.core.users.model.User">
+    	UPDATE
+    		core_USERS
+    	SET
+    		USERNAME = #{username},
+    		NAME = #{name},
+    		EMAIL = #{email},
+    		PROFILE_ID = #{profile.id}
+    	WHERE
+    		USER_ID = #{id}
+    </update>
+    
+    <delete id="delete" parameterType="com.nttdata.core.users.model.User">
+    	DELETE FROM core_USERS where USER_ID = #{id}
+    </delete>
+    
+</mapper>

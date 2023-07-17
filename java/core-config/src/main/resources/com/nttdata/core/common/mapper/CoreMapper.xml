@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="com.nttdata.core.common.mapper.CoreMapper">
+
+	<resultMap id="coreUserMap" type="com.nttdata.core.common.model.CoreUser">
+		<id column="USER_ID" property="id" />
+		<result column="NAME" property="name" />
+		<result column="USERNAME" property="username" />
+		<result column="PROFILE_ID" property="profileId" />
+	</resultMap>
+
+	<select id="getRolesByUsername" resultType="java.lang.String" parameterType="java.lang.String">
+		select 'ROLE_' || a.name as authority
+		from core_authorities a
+		join core_profile_authorities pa on a.authority_id = pa.authority_id
+		join core_users u on pa.profile_id = u.profile_id
+        WHERE UPPER(u.username) = UPPER(#{value})
+	</select>
+
+
+	<select id="getUserDetails" resultMap="coreUserMap" parameterType="java.lang.String">
+		SELECT USER_ID, NAME, USERNAME, PROFILE_ID
+        FROM core_users
+		WHERE UPPER(USERNAME) = UPPER(#{value})
+	</select>
+
+</mapper>

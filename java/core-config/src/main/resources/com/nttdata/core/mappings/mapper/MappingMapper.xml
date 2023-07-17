@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="com.nttdata.core.mappings.mapper.MappingMapper">
+
+	<resultMap id="simpleResultMap" type="com.nttdata.core.mappings.model.Mapping">
+        <id column="MAPPING_ID" property="id" />
+        <result column="PATTERN" property="pattern" />
+        <result column="POSITION" property="position" />
+    </resultMap>
+
+    <resultMap type="com.nttdata.core.mappings.model.Mapping" id="fullResultMap" extends="simpleResultMap">
+		<collection property="authorities" javaType="ArrayList" column="MAPPING_ID" ofType="com.nttdata.core.authorities.model.Authority" select="findAuthoritiesByMappingId" />
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.mappings.model.MappingPage" id="paginableResultMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="simpleResultMap" />
+    </resultMap>
+    
+    <select id="find" parameterType="com.nttdata.core.mappings.model.Mapping" resultMap="fullResultMap">
+    	SELECT
+    		MAPPING_ID, PATTERN, POSITION
+    	FROM 
+    		core_MAPPINGS
+        WHERE MAPPING_ID = #{id}
+    </select>
+    
+    <sql id="searchSQL">
+    	SELECT
+    		M.MAPPING_ID, PATTERN, POSITION
+    	FROM core_MAPPINGS M
+    	<if test="null != filters.authorities and filters.authorities.size > 0">
+    		LEFT JOIN core_MAPPING_AUTHORITIES MA ON M.MAPPING_ID = MA.MAPPING_ID
+    	</if>
+    	<where>
+    		<if test="null != filters">
+	    		<if test="null != filters.pattern and !filters.pattern.isEmpty()">
+					AND <include refid="BASE.translate1" /> PATTERN <include refid="BASE.translate2_Aproximado" /> #{filters.pattern} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.position">
+					AND POSITION = #{filters.position}
+				</if>
+				<if test="null != filters.authorities and filters.authorities.size > 0">
+					AND MA.AUTHORITY_ID IN
+					 <foreach index="index" collection="filters.authorities" open="(" separator="," close=")">
+		                #{filters.authorities[${index}].id}
+		            </foreach>
+				</if>
+    		</if>
+    	</where>
+    	<if test="null != filters.authorities and filters.authorities.size > 0">
+    		GROUP BY M.MAPPING_ID, PATTERN, POSITION
+    	</if>
+    </sql>
+    
+    <select id="search" parameterType="com.nttdata.core.mappings.model.MappingPage" resultMap="paginableResultMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    <select id="export" parameterType="com.nttdata.core.mappings.model.MappingPage" resultMap="simpleResultMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    <insert id="insert" parameterType="com.nttdata.core.mappings.model.Mapping">
+    	<selectKey order="BEFORE" keyProperty="id" resultType="long">
+			SELECT nextval('sq_core_mappings')
+    	</selectKey>
+    	INSERT INTO core_MAPPINGS (MAPPING_ID, PATTERN, POSITION) values (#{id}, #{pattern}, #{position})
+    </insert>
+    
+    <update id="update" parameterType="com.nttdata.core.mappings.model.Mapping">
+    	UPDATE
+    		core_MAPPINGS
+    	SET
+    		PATTERN = #{pattern},
+    		POSITION = #{position}
+    	WHERE
+    		MAPPING_ID = #{id}
+    </update>
+    
+    <delete id="delete" parameterType="com.nttdata.core.mappings.model.Mapping">
+    	DELETE FROM core_MAPPINGS where MAPPING_ID = #{id}
+    </delete>
+	
+	<select id="getApiMappings" resultMap="fullResultMap">
+		SELECT
+			m.mapping_id,
+			m.pattern
+		FROM
+			core_mappings m
+		ORDER BY
+			m.position asc nulls first,
+			m.pattern desc
+	</select>
+	
+	<select id="findAuthoritiesByMappingId" resultType="com.nttdata.core.authorities.model.Authority">
+		SELECT
+    		ma.authority_id as id, A.NAME
+    	FROM 
+    		core_mapping_authorities ma
+		INNER JOIN
+			core_authorities a on ma.authority_id = a.authority_id
+        WHERE ma.MAPPING_ID = #{MAPPING_ID}
+    </select>
+	
+	<select id="getUserMappings" parameterType="java.lang.Long" resultType="java.lang.String">
+		SELECT
+			pattern
+		FROM
+			core_mappings m
+		INNER JOIN
+			core_mapping_authorities ma on m.mapping_id = ma.mapping_id
+		INNER JOIN
+			core_profile_authorities pa on ma.authority_id = pa.authority_id
+		WHERE
+			pa.profile_id = #{value}
+		GROUP BY
+			pattern
+	</select>
+	
+	<select id="getProfilesByAuthorities" parameterType="java.util.Set" resultType="java.lang.String">
+        SELECT
+            NAME
+        FROM 
+            core_PROFILES P
+        INNER JOIN
+            core_PROFILE_AUTHORITIES PA ON P.PROFILE_ID = PA.PROFILE_ID
+        WHERE
+        	PA.AUTHORITY_ID IN
+        <foreach item="item" collection="collection" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        GROUP BY name
+    </select>
+</mapper>

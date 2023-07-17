@@ -1,0 +1,11 @@
+[
+	{
+		"name" : "button.edit",
+		"icon" : "pencil-alt",
+		"handler" : "onEdit",
+		"roles" : [
+			"ROLE_AUDIT"
+		],
+		"rowButton" : true
+	}
+]

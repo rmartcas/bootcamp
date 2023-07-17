@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://localhost:8443/saml/">
+  <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIID5jCCAs6gAwIBAgIUBXYcPxASe4OpWiwUvOQZdXLAVbkwDQYJKoZIhvcNAQELBQAwgZ8xCzAJBgNVBAYTAkdCMQ8wDQYDVQQIDAZMb25kb24xDzANBgNVBAcMBkxvbmRvbjEYMBYGA1UECgwPTXkgT3JnYW5pc2F0aW9uMR8wHQYDVQQLDBZNeSBPcmdhbmlzYXRpb25hbCBVbml0MR8wHQYJKoZIhvcNAQkBFhBlbWFpbEBkb21haW4uY29tMRIwEAYDVQQDDAlsb2NhbGhvc3QwHhcNMjAwODA2MDcwMDMyWhcNMzAwNTA2MDcwMDMyWjCBnzELMAkGA1UEBhMCR0IxDzANBgNVBAgMBkxvbmRvbjEPMA0GA1UEBwwGTG9uZG9uMRgwFgYDVQQKDA9NeSBPcmdhbmlzYXRpb24xHzAdBgNVBAsMFk15IE9yZ2FuaXNhdGlvbmFsIFVuaXQxHzAdBgkqhkiG9w0BCQEWEGVtYWlsQGRvbWFpbi5jb20xEjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAPPJCNW8Fp6sYx5KyEpgks+rIZa+G2M36EKwGyUkkduPo7XGYoWxMxk9IfPg64CvfeNCfChSDjX3XM0qk/fNpFrqeXW0jFVj+Xf4wAWsJfrGFGNqmbvw7TAGcieft3teBnyurXyFpvXtUL29t+I/bb1kH4RyD9375C2CR9Q2e2DP3rIRUbzA4Kurxz/XS0+9TQ4jsUwvsreOj4yFiO1dTivn0/7rkNC+3Sz70IH+nVxQGuXhRdikTfNlzGsMPG2ORvtGvQG9sw2IKVYNxRCrkCiXF0EyNT38oAGZ12rGg2E1F16wdz3kqIwtM8iUWNRsVxClABacOnFpFN9R3nuba1cCAwEAAaMYMBYwFAYDVR0RBA0wC4IJbG9jYWxob3N0MA0GCSqGSIb3DQEBCwUAA4IBAQCiyKZngB7PVEF/Ck9lsSZrsGfQoHR/xE8GLDeeYWPOb6jSe1TepmLNpH2+oA+nw+6ks0pFEIJU9ZxC9+tm/eeGKc0RD/4sQVG/5zurozTdqP4ixCjbr+FzmgwfntWUrxXN3/ypV0QBdrHnt1tqIVdMW/eyaKyT5+bQcGHCyq3Kqyd9wBvh67Mkl1nMPjqAISKn3LY1uH1uZLgFbRI+C7xVWk1AK6eKCLzNwsfhcEvXx72qV8wGSUjZxztKhzBPXstX253XSW8mzkZqR0y6ziRBqbMKM+k2xMbqWGroVxLiT3/9ZOe1pAzCUfG6HvYG568DlKuiuU8ehWDU/ttjGBDp</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:KeyDescriptor use="encryption">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIID5jCCAs6gAwIBAgIUBXYcPxASe4OpWiwUvOQZdXLAVbkwDQYJKoZIhvcNAQELBQAwgZ8xCzAJBgNVBAYTAkdCMQ8wDQYDVQQIDAZMb25kb24xDzANBgNVBAcMBkxvbmRvbjEYMBYGA1UECgwPTXkgT3JnYW5pc2F0aW9uMR8wHQYDVQQLDBZNeSBPcmdhbmlzYXRpb25hbCBVbml0MR8wHQYJKoZIhvcNAQkBFhBlbWFpbEBkb21haW4uY29tMRIwEAYDVQQDDAlsb2NhbGhvc3QwHhcNMjAwODA2MDcwMDMyWhcNMzAwNTA2MDcwMDMyWjCBnzELMAkGA1UEBhMCR0IxDzANBgNVBAgMBkxvbmRvbjEPMA0GA1UEBwwGTG9uZG9uMRgwFgYDVQQKDA9NeSBPcmdhbmlzYXRpb24xHzAdBgNVBAsMFk15IE9yZ2FuaXNhdGlvbmFsIFVuaXQxHzAdBgkqhkiG9w0BCQEWEGVtYWlsQGRvbWFpbi5jb20xEjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAPPJCNW8Fp6sYx5KyEpgks+rIZa+G2M36EKwGyUkkduPo7XGYoWxMxk9IfPg64CvfeNCfChSDjX3XM0qk/fNpFrqeXW0jFVj+Xf4wAWsJfrGFGNqmbvw7TAGcieft3teBnyurXyFpvXtUL29t+I/bb1kH4RyD9375C2CR9Q2e2DP3rIRUbzA4Kurxz/XS0+9TQ4jsUwvsreOj4yFiO1dTivn0/7rkNC+3Sz70IH+nVxQGuXhRdikTfNlzGsMPG2ORvtGvQG9sw2IKVYNxRCrkCiXF0EyNT38oAGZ12rGg2E1F16wdz3kqIwtM8iUWNRsVxClABacOnFpFN9R3nuba1cCAwEAAaMYMBYwFAYDVR0RBA0wC4IJbG9jYWxob3N0MA0GCSqGSIb3DQEBCwUAA4IBAQCiyKZngB7PVEF/Ck9lsSZrsGfQoHR/xE8GLDeeYWPOb6jSe1TepmLNpH2+oA+nw+6ks0pFEIJU9ZxC9+tm/eeGKc0RD/4sQVG/5zurozTdqP4ixCjbr+FzmgwfntWUrxXN3/ypV0QBdrHnt1tqIVdMW/eyaKyT5+bQcGHCyq3Kqyd9wBvh67Mkl1nMPjqAISKn3LY1uH1uZLgFbRI+C7xVWk1AK6eKCLzNwsfhcEvXx72qV8wGSUjZxztKhzBPXstX253XSW8mzkZqR0y6ziRBqbMKM+k2xMbqWGroVxLiT3/9ZOe1pAzCUfG6HvYG568DlKuiuU8ehWDU/ttjGBDp</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://localhost:8443/saml?SLO=true"/>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://localhost:8443/saml?SLO=true"/>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://localhost:8443/saml/"/>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://localhost:8443/saml/"/>
+  </md:IDPSSODescriptor>
+</md:EntityDescriptor>

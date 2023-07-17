@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+	<!-- The appName for this log settins -->
+	<property name="appName" value="bootcamp" />
+	
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="co.elastic.logging.logback.EcsEncoder">
+			<serviceName>${appName}</serviceName>
+			<includeMarkers>true</includeMarkers>
+		</encoder>
+	</appender>
+	
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${appName}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>${appName}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!-- each file should be at most 100MB, keep 60 days worth of history, 
+				but at most 20GB -->
+			<maxFileSize>100MB</maxFileSize>
+			<maxHistory>60</maxHistory>
+			<totalSizeCap>20GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{dd/MM/yyyy HH:mm:ss.SSS} [%thread] %-5level RequestID: %X{requestId} %logger{36} - %msg%n</pattern>
+      		<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+	
+	<appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${appName}-security.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>${appName}-security-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!-- each file should be at most 100MB, keep 60 days worth of history, 
+				but at most 20GB -->
+			<maxFileSize>100MB</maxFileSize>
+			<maxHistory>60</maxHistory>
+			<totalSizeCap>20GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{dd/MM/yyyy HH:mm:ss.SSS} [%thread] %-5level %-17marker RequestID: %X{requestId} - %msg%n</pattern>
+      		<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+	
+	<appender name="ASYNC-CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+    	<appender-ref ref="CONSOLE" />
+  	</appender>
+  	
+  	<appender name="ASYNC-FILE" class="ch.qos.logback.classic.AsyncAppender">
+    	<appender-ref ref="FILE" />
+  	</appender>
+  	
+  	<appender name="ASYNC-SECURITY" class="ch.qos.logback.classic.AsyncAppender">
+    	<appender-ref ref="SECURITY" />
+  	</appender>
+	
+	<logger name="com.nttdata.core.security.listener" level="debug" additivity="false">
+		<appender-ref ref="ASYNC-CONSOLE" />	
+<!-- 		<appender-ref ref="ASYNC-SECURITY" /> -->
+	</logger>
+	
+	<logger name="com.nttdata.core.security.logger" level="info" additivity="false">
+<!-- 		<appender-ref ref="ASYNC-CONSOLE" />	 -->
+		<appender-ref ref="ASYNC-SECURITY" />
+	</logger>
+	
+	<logger name="com.nttdata.bootcamp.TimeExecutionAspect" additivity="false">
+		<appender-ref ref="ASYNC-CONSOLE" />
+	</logger>
+	
+	<logger name="org.hdiv.logs" level="info" additivity="false">
+<!-- 		<appender-ref ref="ASYNC-CONSOLE" />	 -->
+		<appender-ref ref="ASYNC-SECURITY" />
+	</logger>
+	
+	<root level="DEBUG">
+		<appender-ref ref="ASYNC-CONSOLE" />
+<!-- 		<appender-ref ref="ASYNC-FILE" /> -->
+	</root>
+</configuration>
