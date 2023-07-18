@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuditPageValidator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.audit.web</a> &gt; <span class="el_source">AuditPageValidator.java</span></div><h1>AuditPageValidator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.audit.web;
+
+import org.springframework.validation.Errors;
+
+import com.nttdata.core.audit.constants.AuditableConstants;
+import com.nttdata.core.audit.model.AuditDataLoad;
+import com.nttdata.core.audit.model.AuditPage;
+import com.nttdata.core.common.utils.ValidatorUtils;
+import com.nttdata.core.crud.web.CrudValidator;
+
+/**
+ * Validator for {@link AuditPage}
+ */
+<span class="nc" id="L17">public class AuditPageValidator extends CrudValidator {</span>
+
+	@Override
+	public boolean supports(Class&lt;?&gt; clazz) {
+<span class="nc" id="L21">		return AuditPage.class.equals(clazz);</span>
+	}
+
+	@Override
+	public void validate(Object target, Errors errors) {
+<span class="nc" id="L26">		AuditDataLoad initialData = (AuditDataLoad) this.getValidationData();</span>
+
+<span class="nc" id="L28">		AuditPage page = (AuditPage) target;</span>
+
+		// Mandatory fields
+<span class="nc" id="L31">		Object requestId = errors.getFieldValue(AuditableConstants.FIELD_FILTERS_REQUEST_ID);</span>
+<span class="nc bnc" id="L32" title="All 4 branches missed.">		if (null == requestId || 0 == page.getFilters().getRequestId().length()) {</span>
+<span class="nc" id="L33">			ValidatorUtils.rejectIfEmpty(errors, AuditableConstants.FIELD_FILTERS_TABLE);</span>
+		}
+		
+		// Max length validations
+<span class="nc" id="L37">		ValidatorUtils.rejectIfLengthExceeded(errors, AuditableConstants.FIELD_FILTERS_USER, 10);</span>
+<span class="nc" id="L38">		ValidatorUtils.rejectIfLengthExceeded(errors, AuditableConstants.FIELD_FILTERS_REQUEST_ID, 36);</span>
+<span class="nc" id="L39">		ValidatorUtils.rejectIfLengthExceeded(errors, AuditableConstants.FIELD_FILTERS_PAIR_KEY, 36);</span>
+		
+		//Allowed tables and actions
+<span class="nc bnc" id="L42" title="All 2 branches missed.">		if (null != page.getFilters().getTable()) {</span>
+<span class="nc" id="L43">			ValidatorUtils.rejectIfCollectionNotContains(errors, AuditableConstants.FIELD_FILTERS_TABLE, initialData.getTables(), true);</span>
+		}
+
+<span class="nc bnc" id="L46" title="All 2 branches missed.">		if (null != page.getFilters().getAction()) {</span>
+<span class="nc" id="L47">			ValidatorUtils.rejectIfCollectionNotContains(errors, AuditableConstants.FIELD_FILTERS_ACTION, initialData.getActions());	</span>
+		}
+<span class="nc" id="L49">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

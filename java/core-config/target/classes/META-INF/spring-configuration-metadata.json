@@ -1,0 +1,216 @@
+{
+  "groups": [
+    {
+      "name": "config",
+      "type": "com.nttdata.core.context.ConfigProperties",
+      "sourceType": "com.nttdata.core.context.ConfigProperties"
+    },
+    {
+      "name": "config.api-response",
+      "type": "com.nttdata.core.context.ConfigProperties$ApiResponse",
+      "sourceType": "com.nttdata.core.context.ConfigProperties",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.ApiResponse getApiResponse() "
+    },
+    {
+      "name": "config.audit",
+      "type": "com.nttdata.core.context.ConfigProperties$Audit",
+      "sourceType": "com.nttdata.core.context.ConfigProperties",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Audit getAudit() "
+    },
+    {
+      "name": "config.bbdd",
+      "type": "com.nttdata.core.context.ConfigProperties$Bbdd",
+      "sourceType": "com.nttdata.core.context.ConfigProperties",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Bbdd getBbdd() "
+    },
+    {
+      "name": "config.bbdd.pagination",
+      "type": "com.nttdata.core.context.ConfigProperties$Bbdd$Pagination",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Bbdd",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Bbdd.Pagination getPagination() "
+    },
+    {
+      "name": "config.locale",
+      "type": "com.nttdata.core.context.ConfigProperties$Locale",
+      "sourceType": "com.nttdata.core.context.ConfigProperties",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Locale getLocale() "
+    },
+    {
+      "name": "config.security",
+      "type": "com.nttdata.core.context.ConfigProperties$Security",
+      "sourceType": "com.nttdata.core.context.ConfigProperties",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Security getSecurity() "
+    },
+    {
+      "name": "config.security.hdiv",
+      "type": "com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Security.SecurityHdiv getHdiv() "
+    },
+    {
+      "name": "config.security.recaptcha",
+      "type": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Security.Recaptcha getRecaptcha() "
+    },
+    {
+      "name": "config.security.url",
+      "type": "com.nttdata.core.context.ConfigProperties$Security$SecurityUrl",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security",
+      "sourceMethod": "public com.nttdata.core.context.ConfigProperties.Security.SecurityUrl getUrl() "
+    }
+  ],
+  "properties": [
+    {
+      "name": "config.api-response.exclusions",
+      "type": "java.lang.String[]",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$ApiResponse"
+    },
+    {
+      "name": "config.audit.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Audit"
+    },
+    {
+      "name": "config.audit.excluded-methods",
+      "type": "java.lang.String[]",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Audit"
+    },
+    {
+      "name": "config.bbdd.pagination.limits",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Bbdd$Pagination"
+    },
+    {
+      "name": "config.bbdd.pagination.page",
+      "type": "java.lang.Integer",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Bbdd$Pagination"
+    },
+    {
+      "name": "config.bbdd.pagination.page-limits",
+      "type": "java.lang.Integer[]",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Bbdd$Pagination"
+    },
+    {
+      "name": "config.bbdd.pagination.prefix",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Bbdd$Pagination"
+    },
+    {
+      "name": "config.bbdd.pagination.size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Bbdd$Pagination"
+    },
+    {
+      "name": "config.bbdd.pagination.suffix",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Bbdd$Pagination"
+    },
+    {
+      "name": "config.locale.default-lang",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Locale"
+    },
+    {
+      "name": "config.locale.locales",
+      "type": "java.lang.String[]",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Locale"
+    },
+    {
+      "name": "config.locale.param-name",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Locale"
+    },
+    {
+      "name": "config.security.hdiv.error-page",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv"
+    },
+    {
+      "name": "config.security.hdiv.excluded-extensions",
+      "type": "java.lang.String[]",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv"
+    },
+    {
+      "name": "config.security.hdiv.excluded-pages",
+      "type": "java.lang.String[]",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv"
+    },
+    {
+      "name": "config.security.hdiv.excluded-params-for-url",
+      "type": "java.util.List<com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv$HdivExcludedParamForUrl>",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv"
+    },
+    {
+      "name": "config.security.hdiv.start-pages",
+      "type": "java.lang.String[]",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv"
+    },
+    {
+      "name": "config.security.hdiv.url-obfuscation",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityHdiv"
+    },
+    {
+      "name": "config.security.recaptcha.actions",
+      "type": "java.util.Map<java.lang.String,com.nttdata.core.context.ConfigProperties$Security$Recaptcha$RecaptchaAction>",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.connection-timeout",
+      "type": "java.lang.Integer",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.key-secret",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.key-site",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.receive-timeout",
+      "type": "java.lang.Integer",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.response-header-name",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.score",
+      "type": "java.lang.Float",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.recaptcha.verify-url",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$Recaptcha"
+    },
+    {
+      "name": "config.security.url.logout",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityUrl"
+    },
+    {
+      "name": "config.security.url.logout-idp",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityUrl"
+    },
+    {
+      "name": "config.security.url.welcome-page",
+      "type": "java.lang.String",
+      "sourceType": "com.nttdata.core.context.ConfigProperties$Security$SecurityUrl"
+    }
+  ],
+  "hints": []
+}

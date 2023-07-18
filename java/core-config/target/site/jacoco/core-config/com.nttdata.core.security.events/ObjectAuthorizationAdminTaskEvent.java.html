@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ObjectAuthorizationAdminTaskEvent.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.events</a> &gt; <span class="el_source">ObjectAuthorizationAdminTaskEvent.java</span></div><h1>ObjectAuthorizationAdminTaskEvent.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.events;
+
+import lombok.Getter;
+import lombok.ToString;
+
+/**
+ * Object authorization admin task event
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Getter
+<span class="nc" id="L16">@ToString</span>
+public class ObjectAuthorizationAdminTaskEvent extends AdminTaskEvent {
+	
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L22">	public enum ActionType {</span>
+<span class="nc" id="L23">		ASSIGN,</span>
+<span class="nc" id="L24">		UNASSIGN</span>
+	}
+	
+<span class="nc" id="L27">	private final String groupId;</span>
+	
+<span class="nc" id="L29">	private final String objectId;</span>
+	
+<span class="nc" id="L31">	private final String roleId;</span>
+	
+<span class="nc" id="L33">	private final ActionType action;</span>
+	
+	public ObjectAuthorizationAdminTaskEvent(Object source, String groupId,
+			String objectId, String roleId, ActionType action) {
+<span class="nc" id="L37">		super(source, TaskType.OBJECT_AUTHORIZATION);</span>
+<span class="nc" id="L38">		this.groupId = groupId;</span>
+<span class="nc" id="L39">		this.objectId = objectId;</span>
+<span class="nc" id="L40">		this.roleId = roleId;</span>
+<span class="nc" id="L41">		this.action = action;</span>
+<span class="nc" id="L42">	}</span>
+
+	@Override
+	public String getDetails() {
+<span class="nc" id="L46">		return this.toString();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

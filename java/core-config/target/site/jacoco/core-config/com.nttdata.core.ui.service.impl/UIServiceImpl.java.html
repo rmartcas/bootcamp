@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UIServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.ui.service.impl</a> &gt; <span class="el_source">UIServiceImpl.java</span></div><h1>UIServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.ui.service.impl;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.nttdata.core.common.model.Button;
+import com.nttdata.core.common.model.TableColumn;
+import com.nttdata.core.security.utils.SecurityUtils;
+import com.nttdata.core.ui.service.UIService;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Generic UI service that implements methods to retrieve
+ * UI elements like buttons and table columns based on user permissions.&lt;br&gt;
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="fc" id="L32">@Slf4j</span>
+@Service
+<span class="fc" id="L34">public class UIServiceImpl implements UIService {</span>
+	
+	@Autowired
+	private ObjectMapper objectMapper;
+	
+	/**
+	 * Gets the columns for UI.
+	 * @param moduleFile {@link String} the module name
+	 * @return a {@link List} of {@link TableColumn}
+	 */
+	@Override
+	public List&lt;TableColumn&gt; getColumns(String moduleFile) {
+<span class="fc" id="L46">		InputStream is = this.getClass().getResourceAsStream(&quot;/columns/&quot; + moduleFile + &quot;.json&quot;);</span>
+		
+		try {
+<span class="fc" id="L49">			return this.objectMapper.readValue(is, new TypeReference&lt;List&lt;TableColumn&gt;&gt;() {});</span>
+<span class="fc" id="L50">		} catch (Exception e) {</span>
+<span class="fc" id="L51">			log.warn(&quot;Error al recuperar columnas del module {}&quot;, moduleFile, e);</span>
+		}
+
+<span class="fc" id="L54">		return Collections.emptyList();</span>
+	}
+	
+	/**
+	 * Gets the buttons for UI.
+	 * @param moduleFile {@link String} the module name
+	 * @return a {@link List} of {@link Button}
+	 */
+	@Override
+	public List&lt;Button&gt; getButtons(String moduleFile) {
+<span class="fc" id="L64">		InputStream is = this.getClass().getResourceAsStream(&quot;/buttons/&quot; + moduleFile + &quot;.json&quot;);</span>
+		
+		try {
+<span class="nc" id="L67">			Collection&lt;String&gt; authorities = SecurityUtils.getSessionUser().getAuthorities();</span>
+<span class="nc" id="L68">			List&lt;Button&gt; buttons = this.objectMapper.readValue(is, new TypeReference&lt;List&lt;Button&gt;&gt;() {});</span>
+<span class="nc" id="L69">			List&lt;Button&gt; toReturn = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L70">			checkPermissions(authorities, buttons, toReturn);</span>
+<span class="nc" id="L71">			return toReturn;</span>
+<span class="fc" id="L72">		} catch (Exception e) {</span>
+<span class="fc" id="L73">			log.warn(&quot;Error al recuperar botones del module {}&quot;, moduleFile, e);</span>
+		}
+
+<span class="fc" id="L76">		return Collections.emptyList();</span>
+	}
+	
+	private void checkPermissions(Collection&lt;String&gt; authorities, List&lt;Button&gt; buttons, List&lt;Button&gt; toReturn) {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">		for (Button button : buttons) {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">			for (String authority : button.getRoles()) {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">				if (authorities.contains(authority)) {</span>
+<span class="nc" id="L83">					toReturn.add(button);</span>
+<span class="nc" id="L84">					break;</span>
+				}
+			}
+<span class="nc" id="L87">		}</span>
+<span class="nc" id="L88">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

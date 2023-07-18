@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PaginationInterceptor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.interceptor</a> &gt; <span class="el_source">PaginationInterceptor.java</span></div><h1>PaginationInterceptor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.interceptor;
+
+import java.util.List;
+
+import org.apache.ibatis.cache.CacheKey;
+import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.BoundSql;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.SqlSource;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Signature;
+import org.apache.ibatis.session.ResultHandler;
+import org.apache.ibatis.session.RowBounds;
+import org.springframework.beans.BeanUtils;
+
+import com.nttdata.core.common.constants.CommonConstants;
+import com.nttdata.core.common.model.Page;
+import com.nttdata.core.common.utils.PaginationUtils;
+import com.nttdata.core.context.ApplicationContextHolder;
+import com.nttdata.core.context.ConfigProperties;
+
+/**
+ * Interceptor for pagination settings before searchs and pagination results after search
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Intercepts({
+	  @Signature(type = Executor.class, method = CommonConstants.QUERY, 
+			  args = { MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class }),
+	  @Signature(type = Executor.class, method = CommonConstants.QUERY, 
+	  args = { MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class })
+	})
+<span class="nc" id="L39">public class PaginationInterceptor implements Interceptor {</span>
+	
+    /** mapped statement parameter index. */
+    private static final int MAPPED_STATEMENT_INDEX = 0;
+    
+    /** parameter index. */
+    private static final int PARAMETER_INDEX = 1;
+	
+    /** Configuration properties */
+    private ConfigProperties configProperties;
+
+	/**
+	 * Prepare the pagination object before search and after search.
+	 * 
+	 * @param invocation Invocation with interceptor data
+	 * @return Object intercepted method result
+	 * @throws Throwable if any error
+	 */
+	@Override
+	public Object intercept(Invocation invocation) throws Throwable {
+<span class="nc" id="L59">		Object[] args = invocation.getArgs();</span>
+<span class="nc" id="L60">		final Object parameter = args[PARAMETER_INDEX];</span>
+<span class="nc" id="L61">	    Object result = null;</span>
+	     
+<span class="nc bnc" id="L63" title="All 2 branches missed.">	    if (parameter instanceof Page) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">	    	if (null == configProperties) {</span>
+<span class="nc" id="L65">	    		this.configProperties = ApplicationContextHolder.getApplicationContext().getBean(ConfigProperties.class);</span>
+	    	}
+
+<span class="nc" id="L68">	    	final MappedStatement ms = (MappedStatement) args[MAPPED_STATEMENT_INDEX];</span>
+
+<span class="nc" id="L70">	    	Page&lt;?&gt; searchCriteriaDto = handlePrePagination(args, parameter, ms);</span>
+<span class="nc" id="L71">	    	result = invocation.proceed();</span>
+<span class="nc" id="L72">	    	handlePostPagination(result, searchCriteriaDto);</span>
+<span class="nc" id="L73">	    } else {</span>
+<span class="nc" id="L74">	    	result = invocation.proceed();</span>
+	    }
+<span class="nc" id="L76">	    return result;</span>
+	}
+
+	/**
+	 * Setup paged query for search
+	 *
+	 * @param args Invocation args
+	 * @param parameter The search parameter must be an instance of {@link Page}
+	 * @param ms {@link MappedStatement}
+	 * @param searchCriteriaDto
+	 */
+	private Page&lt;?&gt; handlePrePagination(Object[] args, final Object parameter, final MappedStatement ms) {
+<span class="nc" id="L88">		Page&lt;?&gt; searchCriteriaDto = (Page&lt;?&gt;) parameter;</span>
+<span class="nc" id="L89">		PaginationUtils.preparePagination(configProperties, searchCriteriaDto);</span>
+		 
+<span class="nc" id="L91">		BoundSql boundSql = ms.getBoundSql(parameter);</span>
+<span class="nc" id="L92">		String originalSql = boundSql.getSql();</span>
+<span class="nc" id="L93">		String pagedSql = searchCriteriaDto.getPrefix() + originalSql + searchCriteriaDto.getSuffix();</span>
+
+<span class="nc" id="L95">		BoundSql newBoundSql = new BoundSql(ms.getConfiguration(), pagedSql, boundSql.getParameterMappings(), boundSql.getParameterObject());</span>
+<span class="nc" id="L96">		MappedStatement newMs = copyFromMappedStatement(ms, new BoundSqlSource(newBoundSql));</span>
+<span class="nc" id="L97">		args[MAPPED_STATEMENT_INDEX] = newMs;</span>
+		
+<span class="nc" id="L99">		return searchCriteriaDto;</span>
+	}
+	
+	@SuppressWarnings(CommonConstants.UNCHECKED)
+	private void handlePostPagination(Object result, Page&lt;?&gt; searchCriteriaDto) {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">		if (result instanceof List) {</span>
+<span class="nc" id="L105">			 List&lt;Page&lt;?&gt;&gt; resultList = (List&lt;Page&lt;?&gt;&gt;) result;</span>
+			 
+<span class="nc" id="L107">			 Page&lt;?&gt; resultDto = getResultDto(searchCriteriaDto, resultList);</span>
+			
+<span class="nc" id="L109">			resultDto.setCurrentPage(searchCriteriaDto.getCurrentPage());</span>
+<span class="nc" id="L110">			resultDto.setSize(searchCriteriaDto.getSize());</span>
+<span class="nc" id="L111">			PaginationUtils.preparePaginationResults(resultDto);</span>
+		 }
+<span class="nc" id="L113">	}</span>
+
+	private Page&lt;?&gt; getResultDto(Page&lt;?&gt; searchCriteriaDto, List&lt;Page&lt;?&gt;&gt; resultList) {
+<span class="nc" id="L116">		Page&lt;?&gt; resultDto = null;</span>
+		
+<span class="nc bnc" id="L118" title="All 2 branches missed.">		if (!resultList.isEmpty()) {</span>
+<span class="nc" id="L119">			resultDto = resultList.get(0);</span>
+		}
+		
+<span class="nc bnc" id="L122" title="All 2 branches missed.">		if (null == resultDto) {</span>
+<span class="nc" id="L123">			 resultDto = BeanUtils.instantiateClass(searchCriteriaDto.getClass());</span>
+<span class="nc" id="L124">			 resultList.add(resultDto);</span>
+		}
+<span class="nc" id="L126">		return resultDto;</span>
+	}
+	
+	private MappedStatement copyFromMappedStatement(MappedStatement ms, SqlSource newSqlSource) {
+<span class="nc" id="L130">	        MappedStatement.Builder builder = new MappedStatement.Builder(ms.getConfiguration(), ms.getId(), newSqlSource, ms.getSqlCommandType());</span>
+<span class="nc" id="L131">	        builder.resource(ms.getResource());</span>
+<span class="nc" id="L132">	        builder.fetchSize(ms.getFetchSize());</span>
+<span class="nc" id="L133">	        builder.statementType(ms.getStatementType());</span>
+<span class="nc" id="L134">	        builder.keyGenerator(ms.getKeyGenerator());</span>
+<span class="nc" id="L135">	        String[] keyProperties = ms.getKeyProperties();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">	        builder.keyProperty(keyProperties == null ? null : keyProperties[0]);</span>
+	        //setStatementTimeout()
+<span class="nc" id="L138">	        builder.timeout(ms.getTimeout());</span>
+	        //setStatementResultMap()
+<span class="nc" id="L140">	        builder.parameterMap(ms.getParameterMap());</span>
+	        //setStatementResultMap()
+<span class="nc" id="L142">	        builder.resultMaps(ms.getResultMaps());</span>
+<span class="nc" id="L143">	        builder.resultSetType(ms.getResultSetType());</span>
+	        //setStatementCache()
+<span class="nc" id="L145">	        builder.cache(ms.getCache());</span>
+<span class="nc" id="L146">	        builder.flushCacheRequired(ms.isFlushCacheRequired());</span>
+<span class="nc" id="L147">	        builder.useCache(ms.isUseCache());</span>
+<span class="nc" id="L148">	        return builder.build();</span>
+	    }
+
+	private class BoundSqlSource implements SqlSource {
+		BoundSql boundSql;
+
+<span class="nc" id="L154">		public BoundSqlSource(BoundSql boundSql) {</span>
+<span class="nc" id="L155">			this.boundSql = boundSql;</span>
+<span class="nc" id="L156">		}</span>
+
+		public BoundSql getBoundSql(Object parameterObject) {
+<span class="nc" id="L159">			return boundSql;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

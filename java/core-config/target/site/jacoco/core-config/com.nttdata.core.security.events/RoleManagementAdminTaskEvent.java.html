@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RoleManagementAdminTaskEvent.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.events</a> &gt; <span class="el_source">RoleManagementAdminTaskEvent.java</span></div><h1>RoleManagementAdminTaskEvent.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.events;
+
+import lombok.Getter;
+import lombok.ToString;
+
+/**
+ * Role management admin task event.&lt;br&gt;
+ * Event triggered when an authority entity is created/updated/deleted.
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Getter
+<span class="nc" id="L17">@ToString</span>
+public class RoleManagementAdminTaskEvent extends AdminTaskEvent {
+	
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L23">	public enum ActionType {</span>
+<span class="nc" id="L24">		CREATE,</span>
+<span class="nc" id="L25">		MODIFY,</span>
+<span class="nc" id="L26">		DELETE,</span>
+<span class="nc" id="L27">		READ</span>
+	}
+	
+<span class="nc" id="L30">	private final String roleId;</span>
+	
+<span class="nc" id="L32">	private final ActionType action;</span>
+	
+<span class="nc" id="L34">	private final boolean privileged;</span>
+
+	public RoleManagementAdminTaskEvent(Object source, String roleId, ActionType action, boolean privileged) {
+<span class="nc" id="L37">		super(source, TaskType.ROLE_MANAGEMENT);</span>
+<span class="nc" id="L38">		this.roleId = roleId;</span>
+<span class="nc" id="L39">		this.action = action;</span>
+<span class="nc" id="L40">		this.privileged = privileged;</span>
+<span class="nc" id="L41">	}</span>
+
+	@Override
+	public String getDetails() {
+<span class="nc" id="L45">		return this.toString();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

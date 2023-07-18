@@ -1,0 +1,7 @@
+-------------------------------------------------------------------------------
+Test set: com.nttdata.core.menu.web.MenuControllerTestIT
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.005 s <<< FAILURE! - in com.nttdata.core.menu.web.MenuControllerTestIT
+com.nttdata.core.menu.web.MenuControllerTestIT  Time elapsed: 0.005 s  <<< ERROR!
+java.lang.IllegalStateException: Previous attempts to find a Docker environment failed. Will not retry. Please see logs and check configuration
+

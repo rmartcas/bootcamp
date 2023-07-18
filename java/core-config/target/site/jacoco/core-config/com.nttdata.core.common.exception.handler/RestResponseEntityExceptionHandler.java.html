@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RestResponseEntityExceptionHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.exception.handler</a> &gt; <span class="el_source">RestResponseEntityExceptionHandler.java</span></div><h1>RestResponseEntityExceptionHandler.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.exception.handler;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import org.springframework.dao.DuplicateKeyException;
+
+import com.nttdata.core.i18n.constants.I18nConstants;
+import com.nttdata.core.security.events.InputValidationEvent;
+import com.nttdata.core.security.recaptcha.exception.InvalidRecaptchaException;
+import com.nttdata.core.common.exception.BadRequestException;
+import com.nttdata.core.common.exception.NotFoundException;
+import com.nttdata.core.common.exception.WrapperRuntimeException;
+import com.nttdata.core.common.model.ApiError;
+import com.nttdata.core.context.ApplicationEventPublisherHolder;
+
+/**
+ * Handles all type of exception and return appropriate response type
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@ControllerAdvice
+<span class="nc" id="L41">public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {</span>
+	
+	/**
+	 * Handles internal server errors.
+	 *
+	 * @param ex the ex
+	 * @param request the request
+	 * @return the response entity
+	 */
+	@ExceptionHandler()
+	protected ResponseEntity&lt;Object&gt; handleInternalServerError(RuntimeException ex, WebRequest request) {
+<span class="nc" id="L52">		HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+		
+<span class="nc" id="L54">		String message = I18nConstants.I18N_ERROR_PREFIX.concat(String.valueOf(httpStatus.value()));</span>
+<span class="nc" id="L55">		ApiError apiError = new ApiError(httpStatus, message);</span>
+		
+<span class="nc" id="L57">		return handleExceptionInternal(ex, apiError, new HttpHeaders(), httpStatus, request);</span>
+	}
+	
+	/**
+	 * Handles wrapped exceptions.
+	 * 
+	 * If the wrapped exception has a custom exception handlers delegate to this handler. Otherwise generic handler is used.
+	 * 
+	 * @param ex {@link WrapperRuntimeException} the ex
+	 * @param request the request
+	 * @return the response entity
+	 */
+	@ExceptionHandler({WrapperRuntimeException.class})
+	protected ResponseEntity&lt;Object&gt; handleWrapperRuntimeException(WrapperRuntimeException ex, WebRequest request) {
+<span class="nc" id="L71">		Throwable cause = ex.getCause();</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">		if (null != cause &amp;&amp; !ex.equals(cause)) {</span>
+<span class="nc" id="L73">			return this.handleCause(cause, request);</span>
+		}
+<span class="nc" id="L75">		return this.handleInternalServerError(ex, request);</span>
+	}
+	
+	/**
+	 * Handle max upload size exceeded exceptions.
+	 *
+	 * @param ex the ex
+	 * @param request the request
+	 * @return the response entity
+	 */
+	@ExceptionHandler({MaxUploadSizeExceededException.class})
+	protected ResponseEntity&lt;Object&gt; handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex, WebRequest request) {
+<span class="nc" id="L87">		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;</span>
+
+<span class="nc" id="L89">		String message = I18nConstants.I18N_ERROR_PREFIX.concat(String.valueOf(httpStatus.value()));</span>
+		
+<span class="nc" id="L91">		ApiError apiError = new ApiError(httpStatus, message);</span>
+<span class="nc" id="L92">		List&lt;Pair&lt;String, List&lt;Object&gt;&gt;&gt; errores = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L93">		apiError.setErrors(errores);</span>
+		
+<span class="nc" id="L95">		Pair&lt;String, List&lt;Object&gt;&gt; errPair = Pair.of(I18nConstants.I18N_VALIDATION_FILE_MAX_SIZE_UPLOAD_EXCEEDED, </span>
+<span class="nc" id="L96">				Arrays.asList(ex.getMaxUploadSize() / 1024 / 1024));</span>
+<span class="nc" id="L97">		errores.add(errPair);</span>
+		
+<span class="nc" id="L99">		return handleExceptionInternal(ex, apiError, new HttpHeaders(), httpStatus, request);</span>
+	}
+	
+	/**
+	 * Handle duplicated key exceptions.
+	 *
+	 * @param ex the ex
+	 * @param request the request
+	 * @return the response entity
+	 */
+	@ExceptionHandler({DuplicateKeyException.class})
+	protected ResponseEntity&lt;Object&gt; handleDuplicateKey(DuplicateKeyException ex, WebRequest request) {
+<span class="nc" id="L111">		HttpStatus httpStatus = HttpStatus.CONFLICT;</span>
+		
+<span class="nc" id="L113">		String message = I18nConstants.I18N_VALIDATION_FIELD_DUPLICATED;</span>
+<span class="nc" id="L114">		ApiError apiError = new ApiError(httpStatus, message);</span>
+		
+<span class="nc" id="L116">		return handleExceptionInternal(ex, apiError, new HttpHeaders(), httpStatus, request);</span>
+	}
+	
+    /** Handle data integrity violation exceptions.
+     *  @param ex the ex
+     *  @param request the request
+     *  @return the response entity
+     */
+    @ExceptionHandler({DataIntegrityViolationException.class})
+    protected ResponseEntity&lt;Object&gt; handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+<span class="nc" id="L126">        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;</span>
+        
+<span class="nc" id="L128">        String message = I18nConstants.I18N_VALIDATION_RECORD_IN_USE;</span>
+<span class="nc" id="L129">        ApiError apiError = new ApiError(httpStatus, message);</span>
+        
+<span class="nc" id="L131">        return handleExceptionInternal(ex, apiError, new HttpHeaders(), httpStatus, request);</span>
+    }
+	
+	/**
+	 * Handle access denied exceptions.
+	 *
+	 * @param ex the ex
+	 * @param request the request
+	 * @return the response entity
+	 */
+	@ExceptionHandler({ AccessDeniedException.class, InvalidRecaptchaException.class })
+    public ResponseEntity&lt;Object&gt; handleAccessDeniedException(Exception ex, WebRequest request) {
+<span class="nc" id="L143">		HttpStatus httpStatus = HttpStatus.FORBIDDEN;</span>
+		
+<span class="nc" id="L145">		String message = I18nConstants.I18N_ERROR_PREFIX.concat(String.valueOf(httpStatus.value()));</span>
+<span class="nc" id="L146">		ApiError apiError = new ApiError(httpStatus, message);</span>
+		
+<span class="nc" id="L148">		return handleExceptionInternal(ex, apiError, new HttpHeaders(), httpStatus, request);</span>
+    }
+	
+	/**
+	 * Handle not found exceptions.
+	 *
+	 * @param ex the ex
+	 * @param request the request
+	 * @return the response entity
+	 */
+	@ExceptionHandler({ NotFoundException.class })
+    public ResponseEntity&lt;Object&gt; handleNotFoundException(NotFoundException ex, WebRequest request) {
+<span class="nc" id="L160">		HttpStatus httpStatus = HttpStatus.NOT_FOUND;</span>
+<span class="nc" id="L161">		ApiError apiError = new ApiError(httpStatus, ex.getErrorMessage());</span>
+<span class="nc" id="L162">		return handleExceptionInternal(ex, apiError, new HttpHeaders(), httpStatus, request);</span>
+    }
+	
+	/**
+	 * Handle bad request exceptions.
+	 *
+	 * @param ex the ex
+	 * @param request the request
+	 * @return the response entity
+	 */
+	@ExceptionHandler({ BadRequestException.class })
+    public ResponseEntity&lt;Object&gt; handleBadRequestException(BadRequestException ex, WebRequest request) {
+<span class="nc" id="L174">		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;</span>
+<span class="nc" id="L175">		ApiError apiError = new ApiError(httpStatus, ex.getErrorMessage());</span>
+		
+<span class="nc bnc" id="L177" title="All 4 branches missed.">		if (null != ex.getErrors() &amp;&amp; ex.getErrors().hasErrors()) {</span>
+<span class="nc" id="L178">			List&lt;Pair&lt;String, List&lt;Object&gt;&gt;&gt; errors = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">			for (ObjectError error : ex.getErrors().getAllErrors()) {</span>
+<span class="nc" id="L180">				List&lt;Object&gt; errArgs = null;</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">				if (null != error.getArguments()) {</span>
+<span class="nc" id="L182">					errArgs = Arrays.asList(error.getArguments());</span>
+				}
+<span class="nc" id="L184">				Pair&lt;String, List&lt;Object&gt;&gt; errPair = Pair.of(error.getCode(), errArgs);</span>
+<span class="nc" id="L185">				errors.add(errPair);</span>
+<span class="nc" id="L186">			}</span>
+<span class="nc" id="L187">			apiError.setErrors(errors);</span>
+		}	
+<span class="nc" id="L189">        ApplicationEventPublisherHolder.getEventPublisher().publishEvent(new InputValidationEvent(ex));</span>
+<span class="nc" id="L190">		return handleExceptionInternal(ex, apiError, new HttpHeaders(), httpStatus, request);</span>
+    }
+	
+	protected ResponseEntity&lt;Object&gt; handleCause(Throwable cause, WebRequest request) {
+<span class="nc bnc" id="L194" title="All 2 branches missed.">		if (cause instanceof BadRequestException) {</span>
+<span class="nc" id="L195">			return this.handleBadRequestException((BadRequestException) cause, request);</span>
+		}
+<span class="nc" id="L197">		return this.handleInternalServerError((RuntimeException) cause, request);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

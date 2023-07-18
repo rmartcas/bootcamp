@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProfileAuthorityServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.profileauthorities.service.impl</a> &gt; <span class="el_source">ProfileAuthorityServiceImpl.java</span></div><h1>ProfileAuthorityServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.profileauthorities.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.nttdata.core.audit.AuditableActionsEnum;
+import com.nttdata.core.audit.annotation.Auditable;
+import com.nttdata.core.common.utils.BatchUtils;
+import com.nttdata.core.context.ApplicationEventPublisherHolder;
+import com.nttdata.core.security.events.RoleAuthorizationAdminTaskEvent;
+import com.nttdata.core.security.events.RoleAuthorizationAdminTaskEvent.ActionType;
+import com.nttdata.core.authorities.model.Authority;
+import com.nttdata.core.profiles.model.Profile;
+import com.nttdata.core.profileauthorities.mapper.ProfileAuthorityMapper;
+import com.nttdata.core.profileauthorities.model.ProfileAuthority;
+import com.nttdata.core.profileauthorities.service.ProfileAuthorityService;
+
+/**
+ * Implementation of Profile Authority service interface to handle authorities and profile associations
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Service
+<span class="nc" id="L32">public class ProfileAuthorityServiceImpl implements ProfileAuthorityService {</span>
+	
+	/** The associated mapper */
+	@Autowired
+	private ProfileAuthorityMapper profileAuthorityMapper;
+	
+	/** The SqlSessionTemplate to perform batch operations */
+	@Autowired
+	private SqlSessionTemplate sqlSessionTemplate;
+	
+	/**
+	 * Inserts a list of authorities associated with the profile
+	 * 
+	 * @param profile the profile
+	 */
+	@Override
+	@Auditable(action = AuditableActionsEnum.INSERT, table = &quot;core_profile_authorities&quot;, primaryKey = &quot;profile_id&quot;)
+	public void insertAuthorities(Profile profile) {
+<span class="nc" id="L50">		List&lt;ProfileAuthority&gt; batchList = new ArrayList&lt;&gt;();</span>
+		
+<span class="nc bnc" id="L52" title="All 4 branches missed.">		if (null != profile.getAuthorities() &amp;&amp; !profile.getAuthorities().isEmpty()) {</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">			for (Authority authority : profile.getAuthorities()) {</span>
+<span class="nc" id="L54">				batchList.add(createProfileAuthority(profile, authority));</span>
+<span class="nc" id="L55">			}</span>
+<span class="nc" id="L56">			BatchUtils.execute(sqlSessionTemplate, ProfileAuthorityMapper.class.getCanonicalName() + &quot;.insert&quot;, batchList);</span>
+			
+<span class="nc bnc" id="L58" title="All 2 branches missed.">			for (ProfileAuthority profileAuthority : batchList) {</span>
+<span class="nc" id="L59">				registerEvent(profile, profile.getName(), profileAuthority.getAuthority().getId().toString(), ActionType.ASSIGN);</span>
+<span class="nc" id="L60">			}</span>
+		}
+<span class="nc" id="L62">	}</span>
+	
+	/**
+	 * Inserts a list of profiles associated with the authority
+	 * 
+	 * @param authority the authority
+	 */
+	@Override
+	@Auditable(action = AuditableActionsEnum.INSERT, table = &quot;core_profile_authorities&quot;, primaryKey = &quot;authority_id&quot;)
+	public void insertProfiles(Authority authority) {
+<span class="nc" id="L72">		List&lt;ProfileAuthority&gt; batchList = new ArrayList&lt;&gt;();</span>
+		
+<span class="nc bnc" id="L74" title="All 4 branches missed.">		if (null != authority.getProfiles() &amp;&amp; !authority.getProfiles().isEmpty()) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">			for (Profile profile : authority.getProfiles()) {</span>
+<span class="nc" id="L76">				batchList.add(createProfileAuthority(profile, authority));</span>
+<span class="nc" id="L77">			}</span>
+<span class="nc" id="L78">			BatchUtils.execute(sqlSessionTemplate, ProfileAuthorityMapper.class.getCanonicalName() + &quot;.insert&quot;, batchList);</span>
+			
+<span class="nc bnc" id="L80" title="All 2 branches missed.">			for (ProfileAuthority profileAuthority : batchList) {</span>
+<span class="nc" id="L81">				registerEvent(authority, profileAuthority.getProfile().getId().toString(), authority.getName(), ActionType.ASSIGN);</span>
+<span class="nc" id="L82">			}</span>
+		}
+<span class="nc" id="L84">	}</span>
+	
+	/**
+	 * Delete all authorities associated with the profile
+	 * 
+	 * @param profile the profile
+	 */
+	@Override
+	@Auditable(action = AuditableActionsEnum.DELETE, table = &quot;core_profile_authorities&quot;, primaryKey = &quot;profile_id&quot;)
+	public void deleteAuthorities(Profile profile) {
+<span class="nc" id="L94">		ProfileAuthority dto = new ProfileAuthority();</span>
+<span class="nc" id="L95">		dto.getProfile().setId(profile.getId());</span>
+<span class="nc" id="L96">		profileAuthorityMapper.deleteAuthoritiesByProfile(dto);</span>
+		
+<span class="nc" id="L98">		registerEvent(profile, profile.getName(), null, ActionType.UNASSIGN);</span>
+<span class="nc" id="L99">	}</span>
+	
+	/**
+	 * Delete all profiles associated with the authority
+	 * 
+	 * @param authority the authority
+	 */
+	@Override
+	@Auditable(action = AuditableActionsEnum.DELETE, table = &quot;core_profile_authorities&quot;, primaryKey = &quot;authority_id&quot;)
+	public void deleteProfiles(Authority authority) {
+<span class="nc" id="L109">		ProfileAuthority dto = new ProfileAuthority();</span>
+<span class="nc" id="L110">		dto.getAuthority().setId(authority.getId());</span>
+<span class="nc" id="L111">		profileAuthorityMapper.deleteProfilesByAuthority(dto);</span>
+		
+<span class="nc" id="L113">		registerEvent(authority, null, authority.getName(), ActionType.UNASSIGN);</span>
+<span class="nc" id="L114">	}</span>
+	
+	/**
+	 * Create a new {@link ProfileAuthority}
+	 * 
+	 * @param profile the profile
+	 * @param authority the authority
+	 * @return {@link ProfileAuthority}
+	 */
+	protected ProfileAuthority createProfileAuthority(Profile profile, Authority authority) {
+<span class="nc" id="L124">		ProfileAuthority profileAuthority = new ProfileAuthority();</span>
+<span class="nc" id="L125">		profileAuthority.getProfile().setId(profile.getId());</span>
+<span class="nc" id="L126">		profileAuthority.getAuthority().setId(authority.getId());</span>
+<span class="nc" id="L127">		return profileAuthority;</span>
+	}
+	
+	/**
+	 * Register a new {@link RoleAuthorizationAdminTaskEvent} for the requested
+	 * &lt;code&gt;action&lt;/code&gt;, &lt;code&gt;groupId&lt;/code&gt; and &lt;code&gt;roleId&lt;/code&gt;
+	 * 
+	 * @param source {@link Object} source event
+	 * @param groupId {@link String} the profile
+	 * @param roleId {@link String} the authority
+	 * @param action {@link ActionType} the action
+	 */
+	protected void registerEvent(Object source, String groupId, String roleId, ActionType action) {
+<span class="nc" id="L140">		ApplicationEventPublisherHolder.getEventPublisher().publishEvent(</span>
+				new RoleAuthorizationAdminTaskEvent(source, groupId, roleId, action));
+<span class="nc" id="L142">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

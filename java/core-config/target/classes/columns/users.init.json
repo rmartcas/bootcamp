@@ -1,0 +1,22 @@
+[
+	{
+		"name": "i18n.userPage.filters.username",
+		"prop": "username",
+		"propertyOrder": "filters.username"
+	},
+	{
+		"name": "i18n.userPage.filters.name",
+		"prop": "name",
+		"propertyOrder": "filters.name"
+	},
+	{
+		"name": "i18n.userPage.filters.email",
+		"prop": "email",
+		"propertyOrder": "filters.email"
+	},
+	{
+		"name": "i18n.userPage.filters.profile",
+		"prop": "profile.name",
+		"propertyOrder": "filters.profile"
+	}
+]

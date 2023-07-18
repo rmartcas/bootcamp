@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExcelExportableCursorHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.crud.handler</a> &gt; <span class="el_source">ExcelExportableCursorHandler.java</span></div><h1>ExcelExportableCursorHandler.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.crud.handler;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.ibatis.cursor.Cursor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.util.Assert;
+
+import com.nttdata.core.common.model.Core;
+import com.nttdata.core.common.model.TableColumn;
+import com.nttdata.core.crud.model.CrudDataLoad;
+import com.nttdata.core.i18n.service.I18nService;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * A excel handler to convert the data to an excel workbook.
+ * 
+ * @param &lt;T&gt; Any object extending {@link Core}
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="fc" id="L36">@Slf4j</span>
+public class ExcelExportableCursorHandler&lt;T extends Core&lt;?&gt;&gt; implements ExportableCursorHandler&lt;T&gt; {
+	
+	/** Optional service to translate i18n keys. */
+	private final I18nService i18nService;
+	
+	/**
+	 * Create a new object without i18n translate capabilities
+	 */
+	public ExcelExportableCursorHandler() {
+<span class="fc" id="L46">		super();</span>
+<span class="fc" id="L47">		this.i18nService = null;</span>
+<span class="fc" id="L48">	}</span>
+	
+	/**
+	 * Create a new object with i18n translate capabilities
+	 * @param service {@link I18nService} the i18n service. Must not be null.
+	 */
+	public ExcelExportableCursorHandler(I18nService service) {
+<span class="fc" id="L55">		super();</span>
+<span class="fc" id="L56">		Assert.notNull(service, &quot;I18nService must not be null.&quot;);</span>
+<span class="fc" id="L57">		this.i18nService = service;</span>
+<span class="fc" id="L58">	}</span>
+	
+	@Override
+	public InputStream export(Cursor&lt;T&gt; cursor, CrudDataLoad dataload) {
+<span class="fc" id="L62">		InputStream is = null;</span>
+<span class="fc" id="L63">		try(Workbook workbook = new XSSFWorkbook()) {</span>
+<span class="fc" id="L64">			ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L65">			Sheet sheet = workbook.createSheet(translateIfPossible(&quot;i18n.messages.record.list&quot;));</span>
+<span class="fc" id="L66">			cursor.forEach(data -&gt; {</span>
+			   try {
+<span class="fc" id="L68">				   writeRecord(cursor.getCurrentIndex(), dataload, sheet, data);</span>
+<span class="fc" id="L69">			   } catch (Exception e) {</span>
+<span class="fc" id="L70">				   log.error(&quot;Error durante la escritura del registro en el excel&quot;, e);</span>
+<span class="fc" id="L71">			   }</span>
+<span class="fc" id="L72">			});</span>
+<span class="fc" id="L73">			workbook.write(baos);</span>
+<span class="fc" id="L74">			is = new BufferedInputStream(new ByteArrayInputStream(baos.toByteArray()));</span>
+<span class="fc" id="L75">		} catch (Exception e) {</span>
+<span class="fc" id="L76">			log.error(&quot;Error durante la escritura del excel&quot;, e);</span>
+<span class="fc" id="L77">		}</span>
+<span class="fc" id="L78">		return is;</span>
+	}
+
+	private int writeRecord(int cursorIndex, CrudDataLoad dataload, 
+			Sheet sheet, T data) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+<span class="fc" id="L83">		Row rowHeader = null;</span>
+<span class="fc" id="L84">		CellStyle headerStyle = null;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">		if (cursorIndex == 0) {</span>
+<span class="fc" id="L86">			rowHeader = sheet.createRow(cursorIndex);</span>
+<span class="fc" id="L87">			headerStyle = createDefaultHeaderStyle(sheet.getWorkbook());</span>
+		}
+<span class="fc" id="L89">		Row row = sheet.createRow(cursorIndex + 1);</span>
+<span class="fc" id="L90">		int columnIndex = 0;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">		for (TableColumn column : dataload.getColumns()) {</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">			if (cursorIndex == 0) {</span>
+<span class="fc" id="L93">				createCell(rowHeader, columnIndex, translateIfPossible(column.getName()), headerStyle);</span>
+			}
+<span class="fc" id="L95">			createCell(row, columnIndex, PropertyUtils.getNestedProperty(data, column.getProp()), null);</span>
+<span class="fc" id="L96">			columnIndex++;</span>
+<span class="fc" id="L97">		}</span>
+<span class="fc" id="L98">		return columnIndex;</span>
+	}
+	
+	private void createCell(Row row, int columnCount, Object value, CellStyle style) {
+<span class="fc" id="L102">		Cell cell = row.createCell(columnCount);</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">		if (value instanceof Number) {</span>
+<span class="nc" id="L104">			cell.setCellValue(((Number) value).doubleValue());</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">		} else if (value instanceof Boolean) {</span>
+<span class="nc" id="L106">			String boolValueString = translateIfPossible(&quot;i18n.messages.yes.no.&quot; + ((Boolean)value).compareTo(true));</span>
+<span class="nc" id="L107">			cell.setCellValue(boolValueString);</span>
+<span class="nc" id="L108">		} else {</span>
+<span class="fc" id="L109">			cell.setCellValue((String) value);</span>
+		}
+		// Para los tipos boolean usaremos el servicio de i18n.
+<span class="fc" id="L112">		cell.setCellStyle(style);</span>
+<span class="fc" id="L113">	}</span>
+	
+	protected String translateIfPossible(String i18n) {
+<span class="fc bfc" id="L116" title="All 2 branches covered.">		if (null != this.i18nService) {</span>
+<span class="fc" id="L117">			return this.i18nService.getTranslation(i18n);</span>
+		}
+<span class="fc" id="L119">		return i18n;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

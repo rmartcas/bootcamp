@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CrudController.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.crud.web</a> &gt; <span class="el_source">CrudController.java</span></div><h1>CrudController.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.crud.web;
+
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.InputStreamSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.Validator;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.nttdata.core.common.exception.BadRequestException;
+import com.nttdata.core.common.exception.CoreException;
+import com.nttdata.core.common.model.Core;
+import com.nttdata.core.common.model.DataLoad;
+import com.nttdata.core.common.model.Page;
+import com.nttdata.core.crud.constants.CrudConstants;
+import com.nttdata.core.crud.handler.ExcelExportableCursorHandler;
+import com.nttdata.core.crud.handler.ExportableCursorHandler;
+import com.nttdata.core.crud.service.CrudService;
+
+/**
+ * Generic controller interface that implements generic method for crud operations.
+ * 
+ * @param &lt;T&gt; Any object extending {@link Core}
+ * @param &lt;P&gt; A object extending Page of T
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+public interface CrudController&lt;T extends Core&lt;?&gt;, P extends Page&lt;T&gt;&gt; {
+	
+	/**
+	 * Get the service class of this controller
+	 * 
+	 * @return {@link CrudService} inside the controller
+	 */
+	CrudService&lt;T&gt; getService();
+	
+	/**
+	 * Get the entity validator for this controller&lt;br&gt;
+	 * By default it will be used to validate incoming data from insert/update/delete methods.
+	 * If you need a specific validator for each method (insert/update/delete) you must override
+	 * {@link CrudController#getInsertValidator()}, {@link CrudController#getUpdateValidator()}
+	 *  or {@link CrudController#getDeleteValidator()} respectively
+	 * @return {@link Validator} that supports T record type
+	 */
+	Validator getValidator();
+	
+	/**
+	 * Get the validator used to validate the insert method&lt;br&gt;
+	 * Default implementation returns {@link CrudController#getValidator()}
+	 * @return {@link Validator} that supports T record type
+	 */
+	default Validator getInsertValidator() {
+<span class="nc" id="L67">		return getValidator();</span>
+	}
+	
+	/**
+	 * Get the validator used to validate the update method&lt;br&gt;
+	 * Default implementation returns {@link CrudController#getValidator()}
+	 * @return {@link Validator} that supports T record type
+	 */
+	default Validator getUpdateValidator() {
+<span class="nc" id="L76">		return getValidator();</span>
+	}
+	
+	/**
+	 * Get the validator used to validate the delete method&lt;br&gt;
+	 * Default implementation returns {@link CrudController#getValidator()}
+	 * @return {@link Validator} that supports T record type
+	 */
+	default Validator getDeleteValidator() {
+<span class="nc" id="L85">		return getValidator();</span>
+	}
+	
+	/**
+	 * Get the validator used to validate the find method&lt;br&gt;
+	 * Default implementation returns {@link CrudController#getValidator()}
+	 * @return {@link Validator} that supports T record type
+	 */
+	default Validator getFindValidator() {
+<span class="nc" id="L94">		return getValidator();</span>
+	}
+
+	/**
+	 * Get the search validator for this controller&lt;br&gt;
+	 * It will be user to validate incoming data from search method
+	 * @return {@link Validator} that supports {@link Page}&amp;lt;T&amp;gt; record type
+	 */
+	Validator getSearchValidator();
+	
+	/**
+	 * Persist a new record of T 
+	 * 
+	 * @param dto the record to persist
+	 * @param bindingResult Binding result for error validation
+	 * @param model {@link Model} the model where retrieve the initial data
+	 * @return T persisted record
+	 * @throws CoreException in case of error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_INSERT, 
+			produces = MediaType.APPLICATION_JSON_VALUE,
+			consumes = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;T&gt; insert(@RequestBody T dto, BindingResult bindingResult, Model model) throws CoreException {
+<span class="nc" id="L117">		this.validate(this.getInsertValidator(), dto, bindingResult, this.getService().init(dto));</span>
+<span class="nc" id="L118">		this.getService().insert(dto);</span>
+<span class="nc" id="L119">		return new ResponseEntity&lt;&gt;(dto, HttpStatus.CREATED);</span>
+	}
+	
+	/**
+	 * Updates an existing record 
+	 * 
+	 * @param dto the record to update
+	 * @param bindingResult Binding result for error validation
+	 * @param model {@link Model} the model where retrieve the initial data
+	 * @return Void
+	 * @throws CoreException in case of error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_UPDATE, 
+			produces = MediaType.APPLICATION_JSON_VALUE,
+			consumes = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;Void&gt; update(@RequestBody T dto, BindingResult bindingResult, Model model) throws CoreException {
+<span class="nc" id="L135">		this.validate(this.getUpdateValidator(), dto, bindingResult, this.getService().init(dto));</span>
+<span class="nc" id="L136">		this.getService().update(dto);</span>
+<span class="nc" id="L137">		return new ResponseEntity&lt;&gt;(HttpStatus.ACCEPTED);</span>
+	}
+	
+	/**
+	 * Delete an existing record
+	 * 
+	 * @param dto the record to delete
+	 * @param bindingResult Binding result for error validation
+	 * @param model {@link Model} the model where retrieve the initial data
+	 * @return Void
+	 * @throws CoreException in case of error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_DELETE, 
+			produces = MediaType.APPLICATION_JSON_VALUE,
+			consumes = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;Void&gt; delete(@RequestBody T dto, BindingResult bindingResult, Model model) throws CoreException {
+<span class="nc" id="L153">		this.validate(this.getDeleteValidator(), dto, bindingResult, this.getService().init(dto));</span>
+<span class="nc" id="L154">		this.getService().delete(dto);</span>
+<span class="nc" id="L155">		return new ResponseEntity&lt;&gt;(HttpStatus.NO_CONTENT);</span>
+	}
+	
+	/**
+	 * Find a record of T
+	 * 
+	 * @param dto the record to find
+	 * @param bindingResult Binding result for error validation
+	 * @param model {@link Model} the model where retrieve the initial data
+	 * @return T record data
+	 * @throws CoreException in case of error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_FIND, 
+			produces = MediaType.APPLICATION_JSON_VALUE,
+			consumes = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;T&gt; find(@RequestBody T dto, BindingResult bindingResult, Model model) throws CoreException {
+<span class="nc" id="L171">		this.validate(this.getFindValidator(), dto, bindingResult, this.getService().init(dto));</span>
+<span class="nc" id="L172">		T result = this.getService().find(dto);</span>
+<span class="nc" id="L173">		return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
+	}
+	
+	/**
+	 * Find all records of T
+	 * 
+	 * @param dto with search criteria
+	 * @param bindingResult Binding result for error validation
+	 * @param model {@link Model} the model where retrieve the initial data
+	 * @return {@link Page} of T that meets the search criteria
+	 * @throws CoreException in case of error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_SEARCH, 
+			produces = MediaType.APPLICATION_JSON_VALUE,
+			consumes = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;Page&lt;T&gt;&gt; search(@RequestBody P dto, BindingResult bindingResult, Model model) throws CoreException {
+<span class="nc" id="L189">		this.validate(this.getSearchValidator(), dto, bindingResult, this.getService().init(dto));</span>
+<span class="nc" id="L190">		Page&lt;T&gt; result = this.getService().search(dto);</span>
+<span class="nc" id="L191">		return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
+	}
+	
+	/**
+	 * Prepare the data used when user access the search form.
+	 * Data retrieved is stored in model with name like &quot;init&quot;
+	 * for later validation purposes.
+	 * 
+	 * Inherit controllers must setup {@link org.springframework.web.bind.annotation.SessionAttributes}
+	 * with previous name in order to store the object in session.
+	 * 
+	 * @param model {@link Model} the model where store the initial data
+	 * @return {@link Object} the object with all initial data
+	 * @throws CoreException in case of error
+	 */
+	@GetMapping(value = CrudConstants.CRUD_CONTROLLER_INIT, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;DataLoad&gt; init(Model model) throws CoreException {
+<span class="nc" id="L209">		DataLoad result = this.getService().init((P) null);</span>
+<span class="nc" id="L210">		return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
+	}
+	
+	/**
+	 * Prepare the data used when user access the search form.
+	 * Data retrieved is stored in model with name like &quot;init&quot;
+	 * for later validation purposes.
+	 * 
+	 * Inherit controllers must setup {@link org.springframework.web.bind.annotation.SessionAttributes}
+	 * with previous name in order to store the object in session.
+	 * 
+	 * @param dto optional model to initialize
+	 * @param model {@link Model} the model where store the initial data
+	 * @return {@link Object} the object with all initial data
+	 * @throws CoreException in case of error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_INIT, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;DataLoad&gt; init(@RequestBody(required = false) P dto, Model model) throws CoreException {
+<span class="nc" id="L229">		DataLoad result = this.getService().init(dto);</span>
+<span class="nc" id="L230">		return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
+	}
+	
+	/**
+	 * Prepare the data used when user access the new/edit form
+	 * Data retrieved is stored in model with name like &quot;initedit&quot;
+	 * for later validation purposes.
+	 * 
+	 * Inherit controllers must setup {@link org.springframework.web.bind.annotation.SessionAttributes}
+	 * with previous name in order to store the object in session.
+	 * 
+	 * @param model {@link Model} the model where store the initial data
+	 * @return {@link Object} the object with all initial data for new or edit form
+	 * @throws CoreException in case of error
+	 */
+	@GetMapping(value = CrudConstants.CRUD_CONTROLLER_INIT_EDIT, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;DataLoad&gt; initEdit(Model model) throws CoreException {
+<span class="nc" id="L248">		DataLoad result = this.getService().init((T) null);</span>
+<span class="nc" id="L249">		return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
+	}
+	
+	/**
+	 * Prepare the data used when user access the new/edit form
+	 * Data retrieved is stored in model with name like &quot;initedit&quot;
+	 * for later validation purposes.
+	 * 
+	 * Inherit controllers must setup {@link org.springframework.web.bind.annotation.SessionAttributes}
+	 * with previous name in order to store the object in session.
+	 * 
+	 * @param dto optional model to initialize
+	 * @param model {@link Model} the model where store the initial data
+	 * @return {@link Object} the object with all initial data for new or edit form
+	 * @throws CoreException in case of error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_INIT_EDIT, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;DataLoad&gt; initEdit(@RequestBody(required = false) T dto, Model model) throws CoreException {
+<span class="nc" id="L268">		DataLoad result = this.getService().init(dto);</span>
+<span class="nc" id="L269">		return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
+	}
+	
+	/**
+	 * Export all records of T.
+	 * 
+	 * Default export is to xlsx file
+	 * 
+	 * @param dto with search criteria
+	 * @param bindingResult Binding result for error validation
+	 * @return {@link InputStreamSource} exported data of T that meets the search criteria
+	 * @throws CoreException in case of error
+	 * @throws IOException in case os IO access error
+	 */
+	@PostMapping(value = CrudConstants.CRUD_CONTROLLER_EXPORT,
+			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+			consumes = MediaType.APPLICATION_JSON_VALUE)
+	public default ResponseEntity&lt;InputStreamSource&gt; export(@RequestBody P dto, BindingResult bindingResult) throws CoreException, IOException {
+<span class="nc" id="L287">		return export(dto, bindingResult, new ExcelExportableCursorHandler&lt;&gt;());</span>
+	}
+	
+	default ResponseEntity&lt;InputStreamSource&gt; export(P dto, BindingResult bindingResult, ExportableCursorHandler&lt;T&gt; handler)
+			throws CoreException, IOException {
+<span class="nc" id="L292">		this.validate(this.getSearchValidator(), dto, bindingResult, this.getService().init(dto));</span>
+<span class="nc" id="L293">		InputStream result = this.getService().export(dto, handler);</span>
+<span class="nc" id="L294">		byte[] res = IOUtils.toByteArray(result);</span>
+<span class="nc" id="L295">		InputStreamSource resource = new InputStreamResource(new ByteArrayInputStream(res));</span>
+
+<span class="nc" id="L297">		return ResponseEntity.ok()</span>
+<span class="nc" id="L298">				.header(&quot;Content-Disposition&quot;, String.format(</span>
+<span class="nc" id="L299">						&quot;attachment; filename=%s_export.xlsx&quot;, dto.getClass().getSimpleName().toLowerCase()))</span>
+<span class="nc" id="L300">				.contentLength(res.length)</span>
+<span class="nc" id="L301">				.contentType(MediaType.APPLICATION_OCTET_STREAM)</span>
+<span class="nc" id="L302">				.body(resource);</span>
+	}
+	
+	/**
+	 * Check for input validation
+	 * 
+	 * @param validator to use for validation
+	 * @param dto Object to validate
+	 * @param bindingResult to store validation errors
+	 * @param validationData {@link Object} the validation data to pass within model and errors to validator
+	 * @throws BadRequestException if validation not success
+	 */
+	default void validate(Validator validator, Object dto, BindingResult bindingResult, DataLoad validationData) throws CoreException {
+<span class="nc bnc" id="L315" title="All 2 branches missed.">		if (null != validator) {</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">			if (validator instanceof CrudValidator) {</span>
+<span class="nc" id="L317">				((CrudValidator) validator).setValidationData(validationData);</span>
+			}
+<span class="nc" id="L319">			ValidationUtils.invokeValidator(validator, dto, bindingResult);</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">			if (bindingResult.hasErrors()) {</span>
+<span class="nc" id="L321">				throw new BadRequestException(bindingResult);</span>
+			}		
+		}
+<span class="nc" id="L324">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

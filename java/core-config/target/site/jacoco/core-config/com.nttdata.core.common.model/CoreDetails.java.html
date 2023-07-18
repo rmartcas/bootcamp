@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CoreDetails.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.model</a> &gt; <span class="el_source">CoreDetails.java</span></div><h1>CoreDetails.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.model;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Current authenticated user data
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Getter
+<span class="nc" id="L22">@Setter</span>
+<span class="nc bnc" id="L23" title="All 16 branches missed.">@EqualsAndHashCode(callSuper = true)</span>
+public class CoreDetails extends DefaultSaml2AuthenticatedPrincipal {
+	
+	/** serialVersionUID */
+	private static final long serialVersionUID = -359446569334820860L;
+	
+	/** 
+	 * Core user with authenticated user details such name, id....
+	 * @param coreUser {@link CoreUser} The coreUser
+	 * @return {@link CoreUser} the coreUser
+	 */
+<span class="nc" id="L34">	private CoreUser coreUser;</span>
+	
+	/**
+	 * Create a new CoreDetails
+	 * @param username the username presented to the AuthenticationProvider
+	 * @param attributes the user attributes from saml
+	 * @param sessionIndexes the requested session index for this user
+	 */
+	public CoreDetails(String username, Map&lt;String, List&lt;Object&gt;&gt; attributes,
+			List&lt;String&gt; sessionIndexes) {
+<span class="nc" id="L44">        super(username, attributes, sessionIndexes);</span>
+<span class="nc" id="L45">		this.coreUser = null;</span>
+<span class="nc" id="L46">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

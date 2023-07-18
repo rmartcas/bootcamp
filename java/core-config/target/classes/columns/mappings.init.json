@@ -1,0 +1,13 @@
+[
+	{
+		"name": "i18n.mappingPage.filters.pattern",
+		"prop": "pattern",
+		"propertyOrder": "filters.pattern",
+		"treeColumn" : true
+	},
+	{
+		"name": "i18n.mappingPage.filters.position",
+		"prop": "position",
+		"propertyOrder": "filters.position"
+	}
+]

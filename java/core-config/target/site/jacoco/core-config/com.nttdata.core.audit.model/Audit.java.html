@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Audit.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.audit.model</a> &gt; <span class="el_source">Audit.java</span></div><h1>Audit.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.audit.model;
+
+import java.util.Date;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import com.nttdata.core.audit.AuditableActionsEnum;
+import com.nttdata.core.audit.AuditableStepsEnum;
+import com.nttdata.core.common.model.Core;
+
+/**
+ * Audit to handle audit data
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Getter
+<span class="nc" id="L24">@Setter</span>
+<span class="pc bpc" id="L25" title="1 of 80 branches missed.">@EqualsAndHashCode(callSuper = true)</span>
+<span class="fc" id="L26">@NoArgsConstructor</span>
+public class Audit extends Core&lt;Long&gt; {
+	
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
+
+	/** 
+	 * The table.
+	 * @param table {@link String} The table
+	 * @return {@link String} the table
+	 */
+<span class="fc" id="L37">	private String table;</span>
+	
+	/** 
+	 * The auditable table primary key.
+	 * @param primaryKey {@link String} The primaryKey
+	 * @return {@link String} the primaryKey
+	 */
+<span class="fc" id="L44">	private String primaryKey;</span>
+	
+	/** 
+	 * The auditable action.
+	 * @param action {@link AuditableActionsEnum} The action
+	 * @return {@link AuditableActionsEnum} the action
+	 */
+<span class="fc" id="L51">	private AuditableActionsEnum action;</span>
+	
+	/** 
+	 * The auditable step.
+	 * @param step {@link AuditableStepsEnum} The step
+	 * @return {@link AuditableStepsEnum} the step
+	 */
+<span class="fc" id="L58">	private AuditableStepsEnum step;</span>
+	
+	/** 
+	 * The user performing the action to audit.
+	 * @param user {@link String} The user
+	 * @return {@link String} the user
+	 */
+<span class="fc" id="L65">	private String user;</span>
+	
+	/** 
+	 * The record to audit.
+	 * @param data {@link Core} The record
+	 * @return {@link Core} the record
+	 */
+<span class="fc" id="L72">	private Core&lt;?&gt; data;</span>
+	
+	/** 
+	 * Creation date of the audit.
+	 * @param created {@link Date} The created
+	 * @return {@link Date} the created
+	 */
+<span class="fc" id="L79">	private Date created;</span>
+	
+	/** 
+	 * Key to group pre action audit and post action audit.
+	 * @param pairKey {@link String} The pairKey
+	 * @return {@link String} the pairKey
+	 */
+<span class="fc" id="L86">	private String pairKey;</span>
+	
+	/** 
+	 * The request unique key as identifier to trace all audited elements in the same request.
+	 * @param requestId {@link String} The requestId
+	 * @return {@link String} the requestId
+	 */
+<span class="fc" id="L93">	private String requestId;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

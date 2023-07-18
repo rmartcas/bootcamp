@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Page.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.model</a> &gt; <span class="el_source">Page.java</span></div><h1>Page.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+/**
+ * Core dto to implement search filters of other application Dtos
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="pc bpc" id="L23" title="2 of 38 branches missed.">@EqualsAndHashCode</span>
+<span class="fc" id="L24">@NoArgsConstructor</span>
+@Getter
+<span class="nc" id="L26">@Setter</span>
+public abstract class Page&lt;E extends Core&lt;?&gt;&gt; implements Serializable {
+
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
+	
+	/** 
+	 * Current page number.
+	 * @param currentPage {@link Integer} The currentPage
+	 * @return {@link Integer} the currentPage
+	 */
+<span class="fc" id="L37">	private int currentPage;</span>
+	
+	/** 
+	 * Number of records by page.
+	 * @param size {@link Integer} The size
+	 * @return {@link Integer} the size
+	 */
+<span class="fc" id="L44">	private int size;</span>
+	
+	/** 
+	 * The list of properties used to sort results.
+	 * @param pageOrder {@link List} The pageOrder
+	 * @return {@link List} of {@link PageOrder} the pageOrder
+	 */
+<span class="fc" id="L51">    private List&lt;PageOrder&gt; pageOrder;</span>
+	
+    /** 
+	 * Total number of pages.
+	 * @param totalPages {@link Integer} The totalPages
+	 * @return {@link Integer} the totalPages
+	 */
+<span class="fc" id="L58">	private int totalPages;</span>
+	
+	/** 
+	 * Total number of records.
+	 * @param totalRecords {@link Integer} The totalRecords
+	 * @return {@link Integer} the totalRecords
+	 */
+<span class="fc" id="L65">	private int totalRecords;</span>
+	
+	/** 
+	 * Pagination prefix for sql wrap.
+	 * @param prefix {@link String} The prefix
+	 * @return {@link String} the prefix
+	 */
+	@JsonIgnore
+<span class="nc" id="L73">	private transient String prefix;</span>
+	
+	/** 
+	 * Pagination suffix for sql wrap.
+	 * @param suffix {@link String} The suffix
+	 * @return {@link String} the suffix
+	 */
+	@JsonIgnore
+<span class="nc" id="L81">	private transient String suffix;</span>
+	
+	/** 
+	 * Obtained records from search.
+	 * @param records {@link List} The records
+	 * @return {@link List} the records
+	 */
+<span class="fc" id="L88">	private List&lt;E&gt; records = new ArrayList&lt;&gt;();</span>
+	
+	/** 
+	 * The dto for which this filter is used.
+	 * @param filters The filters
+	 * @return the filters
+	 */
+<span class="fc" id="L95">	private E filters;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

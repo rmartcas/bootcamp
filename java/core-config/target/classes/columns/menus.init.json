@@ -1,0 +1,31 @@
+[
+	{
+		"name": "i18n.menuPage.filters.title",
+		"prop": "title",
+		"propertyOrder": "filters.title",
+		"cellTemplate" : "titleColumn",
+		"treeColumn" : true
+	},
+	{
+		"name": "i18n.menuPage.filters.link",
+		"prop": "link",
+		"propertyOrder": "filters.link"
+	},
+	{
+		"name": "i18n.menuPage.filters.icon",
+		"prop": "icon",
+		"propertyOrder": "filters.icon",
+		"cellTemplate" : "iconColumn"
+	},
+	{
+		"name": "i18n.menuPage.filters.enabled",
+		"prop": "enabled",
+		"propertyOrder": "filters.enabled",
+		"cellTemplate" : "enabledColumn"
+	},
+	{
+		"name": "i18n.menuPage.filters.position",
+		"prop": "position",
+		"propertyOrder": "filters.position"
+	}
+]

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuthorityController.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.authorities.web</a> &gt; <span class="el_source">AuthorityController.java</span></div><h1>AuthorityController.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.authorities.web;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.Validator;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.nttdata.core.crud.service.CrudService;
+import com.nttdata.core.crud.web.CrudController;
+import com.nttdata.core.authorities.constants.AuthorityConstants;
+import com.nttdata.core.authorities.model.Authority;
+import com.nttdata.core.authorities.model.AuthorityPage;
+import com.nttdata.core.authorities.service.AuthorityService;
+
+/**
+ * Authority controller to handle authorities
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@RestController
+@RequestMapping(AuthorityConstants.CONTROLLER_NAMESPACE)
+<span class="nc" id="L26">class AuthorityController implements CrudController&lt;Authority, AuthorityPage&gt; {</span>
+
+	/** The associated service */
+	@Autowired
+	private AuthorityService authorityService;
+		
+	@Override
+	public CrudService&lt;Authority&gt; getService() {
+<span class="nc" id="L34">		return authorityService;</span>
+	}
+
+	@Override
+	public Validator getValidator() {
+<span class="nc" id="L39">		return new AuthorityValidator();</span>
+	}
+
+	@Override
+	public Validator getSearchValidator() {
+<span class="nc" id="L44">		return new AuthorityPageValidator();</span>
+	}
+	
+	@Override
+	public Validator getDeleteValidator() {
+		//No data validation needed to delete a record
+<span class="nc" id="L50">		return null;</span>
+	}
+	
+	@Override
+	public Validator getFindValidator() {
+		//No data validation needed to find a record
+<span class="nc" id="L56">		return null;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CustomLinkUrlProcessor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.hdiv</a> &gt; <span class="el_source">CustomLinkUrlProcessor.java</span></div><h1>CustomLinkUrlProcessor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.hdiv;
+
+import org.hdiv.context.RequestContextHolder;
+import org.hdiv.dataComposer.IDataComposer;
+import org.hdiv.urlProcessor.LinkUrlProcessor;
+import org.hdiv.urlProcessor.UrlData;
+import org.hdiv.util.Method;
+
+import com.nttdata.core.security.utils.SecurityUtils;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Custom url processor that allow generate a state for an action and method.
+ * 
+ * @see ValidatorHelperRequestWrapper
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L22">@Slf4j</span>
+public class CustomLinkUrlProcessor extends LinkUrlProcessor {
+	
+	public CustomLinkUrlProcessor() {
+<span class="nc" id="L26">		super();</span>
+<span class="nc" id="L27">	}</span>
+	
+	public CustomLinkUrlProcessor(LinkUrlProcessor p) {
+<span class="nc" id="L30">		super();</span>
+<span class="nc" id="L31">		this.setConfig(SecurityUtils.getFieldValue(p, &quot;config&quot;));</span>
+<span class="nc" id="L32">	}</span>
+	
+	/**
+	 * Process the url to add hdiv state if it is necessary.
+	 * 
+	 * @param request {@link RequestContextHolder} object
+	 * @param url url to process
+	 * @param encoding char encoding
+	 * @return processed url
+	 */
+	@Override
+	public String processUrl(final RequestContextHolder request, String url, final String encoding) {
+<span class="nc" id="L44">		return this.processUrl(request, url, encoding, Method.GET);</span>
+	}
+	
+	/**
+	 * Process the url to add hdiv state if it is necessary.
+	 * 
+	 * @param request {@link RequestContextHolder} object
+	 * @param url url to process
+	 * @param encoding char encoding
+	 * @param method the method to protect
+	 * @return processed url
+	 */
+	public String processUrl(final RequestContextHolder request, String url, final String encoding, Method method) {
+
+<span class="nc bnc" id="L58" title="All 2 branches missed.">		if (request == null) {</span>
+<span class="nc" id="L59">			return url;</span>
+		}
+<span class="nc" id="L61">		IDataComposer dataComposer = request.getDataComposer();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">		if (dataComposer == null) {</span>
+			// IDataComposer not initialized on request, request is out of filter
+<span class="nc bnc" id="L64" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L65">				log.debug(&quot;IDataComposer not initialized on request. Request doesn't pass through ValidatorFilter, review it's mapping&quot;);</span>
+			}
+<span class="nc" id="L67">			return url;</span>
+		}
+<span class="nc" id="L69">		String hdivParameter = dataComposer.getHdivParameterName();</span>
+<span class="nc" id="L70">		UrlData urlData = createUrlData(url, method, hdivParameter, request);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">		if (urlData.isHdivStateNecessary(config)) {</span>
+			// the url needs protection
+<span class="nc" id="L73">			dataComposer.beginRequest(method, urlData.getUrlWithoutContextPath());</span>
+
+<span class="nc" id="L75">			urlData.setComposedUrlParams(dataComposer.composeParams(urlData.getUrlParams(), method, encoding));</span>
+
+			// Hdiv state param value
+<span class="nc" id="L78">			String stateParam = dataComposer.endRequest();</span>
+			// Url with confidential values and hdiv state param
+
+<span class="nc" id="L81">			url = getProcessedUrlWithHdivState(dataComposer.getBuilder(), hdivParameter, urlData, stateParam);</span>
+		}
+
+<span class="nc" id="L84">		return url;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

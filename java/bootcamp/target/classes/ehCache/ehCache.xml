@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="ehcache.xsd"
+         updateCheck="false" monitoring="autodetect"
+         dynamicConfig="true">
+	
+	<!--
+		Mandatory Default Cache configuration. These settings will be applied
+		to caches created programmtically using CacheManager.add(String
+		cacheName). The defaultCache has an implicit name "default" which is a
+		reserved cache name.
+	-->
+	<defaultCache 
+		maxElementsInMemory="50"
+		eternal="false" 
+		overflowToDisk="false"
+		timeToLiveSeconds="300"
+		memoryStoreEvictionPolicy="LFU" />
+		
+	<!-- Caché de aplicación -->
+	<cache 
+		name="aplicacionCache" 
+		maxElementsInMemory="100"
+		eternal="false" 
+		overflowToDisk="false"
+		timeToLiveSeconds="86400"
+		memoryStoreEvictionPolicy="LFU" />
+
+	<!-- Caché para administración del core -->
+	<cache 
+		name="coreCache" 
+		maxElementsInMemory="300"
+		eternal="false" 
+		overflowToDisk="false"
+		timeToLiveSeconds="86400"
+		memoryStoreEvictionPolicy="LFU" />
+
+	<!-- Caché para los idiomas -->
+	<cache 
+		name="localeCache" 
+		maxElementsInMemory="500"
+		eternal="false" 
+		overflowToDisk="false"
+		timeToLiveSeconds="86400"
+		memoryStoreEvictionPolicy="LFU" />
+		
+	<!-- Caché para monitorizar los evict de otros cachés -->
+	<cache 
+		name="refreshCache" 
+		maxElementsInMemory="15"
+		eternal="false" 
+		overflowToDisk="false"
+		timeToLiveSeconds="86400"
+		memoryStoreEvictionPolicy="LFU" />
+</ehcache>

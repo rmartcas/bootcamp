@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ComboServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.combos.service.impl</a> &gt; <span class="el_source">ComboServiceImpl.java</span></div><h1>ComboServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.combos.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.nttdata.core.combos.mapper.ComboMapper;
+import com.nttdata.core.combos.model.Combo;
+import com.nttdata.core.combos.model.ComboPage;
+import com.nttdata.core.combos.service.ComboService;
+import com.nttdata.core.common.constants.CommonConstants;
+import com.nttdata.core.i18n.service.I18nService;
+
+/**
+ * Implementation of combo service
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Service
+<span class="nc" id="L27">public class ComboServiceImpl implements ComboService {</span>
+
+	/** The combo mapper. */
+	@Autowired
+	private ComboMapper comboMapper;
+	
+	@Autowired
+	private I18nService translateService;
+	
+	/**
+	 * Searh data for combo.
+	 * 
+	 * @param comboPage {@link ComboPage} the combo to search
+	 * @return {@link List}&amp;lt;{@link Combo}&amp;gt; A list of combo objects
+	 */
+	@Override
+	public List&lt;Combo&gt; search(ComboPage comboPage) {
+<span class="nc" id="L44">		return this.search(comboPage, false);</span>
+	}
+	
+	/**
+	 * Searh data for combo in property files instead of datasource.
+	 * 
+	 * @param comboPage {@link ComboPage} the combo to search
+	 * @param searchInProperties {@link Boolean} if true perform a search in property files
+	 * @return {@link List}&amp;lt;{@link Combo}&amp;gt; A list of combo objects
+	 */
+	@Override
+	public List&lt;Combo&gt; search(ComboPage comboPage, boolean searchInProperties) {
+<span class="nc bnc" id="L56" title="All 2 branches missed.">		if (searchInProperties) {</span>
+<span class="nc" id="L57">			return this.searchInProperties(comboPage);	</span>
+		} else {
+<span class="nc" id="L59">			return comboMapper.search(comboPage);</span>
+		}
+	}
+
+	/**
+	 * &lt;p&gt;Search in property files iterating through all properties with with key + index.
+	 * Index is a 0 based number witch is incremented by 1 in every iteration
+	 * while the translate service not return a empty string.&lt;/p&gt;
+	 * &lt;ul&gt; 
+	 * &lt;li&gt;i18n.key.0 = true,True value&lt;/li&gt;
+	 * &lt;li&gt;i18n.key.1 = false,False value&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * &lt;p&gt;The previous example will return a list with 2 elements where the key is true|false and value &quot;True|False value&quot;&lt;/p&gt;
+	 * &lt;ul&gt; 
+	 * &lt;li&gt;i18n.key.0 = Single value&lt;/li&gt;
+	 * &lt;li&gt;i18n.key.1 = Double value&lt;/li&gt;
+	 * &lt;/ul&gt; 
+	 * &lt;p&gt;The previous example will return a list with 2 elements where the key and the value are the same &quot;Single|Double value&quot;&lt;/p&gt;
+	 *	
+	 * &lt;p&gt;This method only used {@link ComboPage}.key attribute to search&lt;/p&gt;
+	 *
+	 * @param comboPage {@link ComboPage} the combo to search
+	 * @return {@link List}&amp;lt;{@link Combo}&amp;gt; A list of combo objects
+	 */
+	protected List&lt;Combo&gt; searchInProperties(ComboPage comboPage) {
+<span class="nc" id="L84">		List&lt;Combo&gt; combos = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L85">		for (int i = 0;; i++) {</span>
+<span class="nc" id="L86">			String key = comboPage.getKey() + CommonConstants.DOT + Integer.toString(i);</span>
+<span class="nc" id="L87">			String value = translateService.getTranslation(key);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">		    if (StringUtils.isBlank(value)) {</span>
+<span class="nc" id="L89">		        break;</span>
+		    }
+<span class="nc" id="L91">		    String[] keyValue = value.split(CommonConstants.COMMA);</span>
+<span class="nc" id="L92">		    Combo combo = new Combo();</span>
+<span class="nc" id="L93">		    combo.setId(keyValue[0]);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">		    if (keyValue.length == 1) {</span>
+<span class="nc" id="L95">		    	combo.setName(keyValue[0]);</span>
+		    } else {
+<span class="nc" id="L97">		    	combo.setName(keyValue[1]);</span>
+		    }
+<span class="nc" id="L99">		    combos.add(combo);</span>
+	    }
+<span class="nc" id="L101">		return combos;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

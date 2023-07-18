@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="com.nttdata.core.menu.mapper.MenuMapper">
+
+	<resultMap id="simpleResultMap" type="com.nttdata.core.menu.model.Menu">
+        <id column="MENU_ID" property="id" />
+        <result column="TITLE" property="title" />
+        <result column="LINK" property="link" />
+        <result column="ICON" property="icon" />
+        <result column="ENABLED" property="enabled" />
+        <result column="POSITION" property="position" />
+        <result column="PARENT_MENU_ID" property="parent.id" />
+        <result column="PARENT_MENU_TEXT" property="parent.title" />
+    </resultMap>
+    
+    <resultMap id="simpleMenuResultMap" type="com.nttdata.core.menu.model.Menu" extends="simpleResultMap">
+        <collection property="roles" ofType="java.lang.String" javaType="java.util.ArrayList">
+      		 <result column="name" />
+    	</collection>
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.menu.model.Menu" id="fullResultMap" extends="simpleResultMap">
+		<collection property="authorities" javaType="ArrayList" column="MENU_ID" ofType="com.nttdata.core.authorities.model.Authority" select="findAuthoritiesByMenuId" />
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.menu.model.MenuPage" id="paginableResultMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="simpleResultMap" />
+    </resultMap>
+    
+    <select id="find" parameterType="com.nttdata.core.menu.model.Menu" resultMap="fullResultMap">
+    	SELECT
+    		M.MENU_ID, M.TITLE, M.LINK, M.ICON, M.ENABLED, M.POSITION, M.PARENT_MENU_ID, P.TITLE AS PARENT_MENU_TEXT
+    	FROM 
+    		core_MENUS M
+    	LEFT JOIN core_MENUS P ON M.PARENT_MENU_ID = P.MENU_ID
+        WHERE M.MENU_ID = #{id}
+    </select>
+    
+	<insert id="insert" parameterType="com.nttdata.core.menu.model.Menu">
+    	<selectKey order="BEFORE" keyProperty="id" resultType="long">
+			SELECT nextval('sq_core_menus')
+    	</selectKey>
+    	INSERT INTO core_MENUS (MENU_ID, TITLE, LINK, ICON, ENABLED, POSITION, PARENT_MENU_ID) 
+    	values (#{id}, #{title}, #{link}, #{icon}, #{enabled}, #{position}, #{parent.id})
+    </insert>
+    
+    <update id="update" parameterType="com.nttdata.core.menu.model.Menu">
+    	UPDATE
+    		core_MENUS
+    	SET
+    		TITLE = #{title},
+    		LINK = #{link},
+    		ICON = #{icon},
+    		ENABLED = #{enabled},
+    		POSITION = #{position},
+    		PARENT_MENU_ID = #{parent.id}
+    	WHERE
+    		MENU_ID = #{id}
+    </update>
+    
+    <delete id="delete" parameterType="com.nttdata.core.menu.model.Menu">
+    	DELETE FROM core_MENUS where MENU_ID = #{id}
+    </delete>
+    
+    <sql id="searchSQL">
+    	SELECT
+    		M.MENU_ID, TITLE, LINK, ICON, ENABLED, POSITION, PARENT_MENU_ID
+    	FROM core_MENUS M
+    	<if test="null != filters.authorities and filters.authorities.size > 0">
+    		LEFT JOIN core_MENU_AUTHORITIES MA ON M.MENU_ID = MA.MENU_ID
+    	</if>
+    	<where>
+    		<if test="null != filters">
+	    		<if test="null != filters.title and !filters.title.isEmpty()">
+					AND <include refid="BASE.translate1" /> TITLE <include refid="BASE.translate2_Aproximado" /> #{filters.title} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.link and !filters.link.isEmpty()">
+					AND <include refid="BASE.translate1" /> LINK <include refid="BASE.translate2_Aproximado" /> #{filters.link} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.authorities and filters.authorities.size > 0">
+					AND MA.AUTHORITY_ID IN
+					 <foreach index="index" collection="filters.authorities" open="(" separator="," close=")">
+		                #{filters.authorities[${index}].id}
+		            </foreach>
+				</if>
+    		</if>
+    	</where>
+    	<if test="null != filters.authorities and filters.authorities.size > 0">
+    		GROUP BY M.MENU_ID, TITLE, LINK, ICON, ENABLED, POSITION, PARENT_MENU_ID
+    	</if>
+    </sql>
+    
+    <select id="search" parameterType="com.nttdata.core.menu.model.MenuPage" resultMap="paginableResultMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    <select id="export" parameterType="com.nttdata.core.menu.model.MenuPage" resultMap="simpleResultMap">
+    	<include refid="searchSQL" />
+    </select>
+	
+	<select id="getUserMenu" resultMap="simpleMenuResultMap">
+		with recursive
+			ancestors(menu_id, title, link, icon, enabled, position, authority_id, parent_menu_id, crumbs) as (
+				<include refid="selectAuthorizedMenus" />
+				union
+	<!-- 			todos los padres de los menús a los que el usuario tiene acceso -->
+				select
+					m.menu_id,
+					m.title,
+					m.link,
+					m.icon,
+					m.enabled,
+					m.position,
+					ca.authority_id,
+					m.parent_menu_id,
+					ca.crumbs || '/' || m.menu_id
+				from
+					core_menus m
+				inner join ancestors ca on
+					ca.parent_menu_id = m.menu_id
+				where
+					m.menu_id::text not in (
+						select regexp_split_to_table(ca.crumbs, '/+')
+					)
+			),
+			children(menu_id, title, link, icon, enabled, position, authority_id, parent_menu_id, crumbs) as (
+				<include refid="selectAuthorizedMenus" />
+				union
+	<!-- 			todos los hijos de los menús a los que el usuario tiene acceso -->
+				select
+					m.menu_id,
+					m.title,
+					m.link,
+					m.icon,
+					m.enabled,
+					m.position,
+					ca.authority_id,
+					m.parent_menu_id,
+					ca.crumbs || '/' || m.menu_id
+				from
+					core_menus m
+				inner join children ca on
+					ca.menu_id = m.parent_menu_id
+				where
+					m.menu_id::text not in (
+						select regexp_split_to_table(ca.crumbs, '/+')
+					)
+			)
+		SELECT
+			menu_id, title, link, icon, enabled, position, name, parent_menu_id
+		FROM
+			ancestors inner join core_authorities a on ancestors.authority_id = a.authority_id
+		union
+		SELECT
+			menu_id, title, link, icon, enabled, position, name, parent_menu_id
+		FROM
+			children inner join core_authorities a on children.authority_id = a.authority_id
+		order by
+			parent_menu_id nulls first,
+			position nulls last,
+			menu_id
+	</select>
+    
+    <sql id="selectAuthorizedMenus">
+<!--     	Todos los menus a los que el perfil del usuario tiene acceso -->
+    	select
+			m.menu_id,
+			m.title,
+			m.link,
+			m.icon,
+			m.enabled,
+			m.position,
+			ma.authority_id,
+			m.parent_menu_id,
+			m.menu_id::text as crumbs
+		from
+			core_menus m
+		inner join core_menu_authorities ma on
+			m.menu_id = ma.menu_id
+		inner join core_profile_authorities pa on
+			ma.authority_id = pa.authority_id
+		where
+			pa.profile_id = #{profileId}
+		group by
+			m.menu_id,
+			m.title,
+			m.link,
+			m.icon,
+			m.enabled,
+			m.position,
+			ma.authority_id,
+			m.parent_menu_id
+    </sql>
+    
+    <select id="findAuthoritiesByMenuId" resultType="com.nttdata.core.authorities.model.Authority">
+		SELECT
+    		ma.authority_id as id, A.NAME
+    	FROM 
+    		core_menu_authorities ma
+		INNER JOIN
+			core_authorities a on ma.authority_id = a.authority_id
+        WHERE ma.MENU_ID = #{MENU_ID}
+    </select>
+</mapper>

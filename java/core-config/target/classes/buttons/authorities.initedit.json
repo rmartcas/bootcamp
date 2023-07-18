@@ -1,0 +1,11 @@
+[
+	{
+		"name": "button.save",
+		"icon": "save",
+		"handler": "onSubmit",
+		"roles": [
+			"ROLE_WRITE_AUTHORITIES"
+		],
+		"disabledWhenInvalid": true
+	}
+]

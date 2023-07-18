@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PaginationUtils.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.utils</a> &gt; <span class="el_source">PaginationUtils.java</span></div><h1>PaginationUtils.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.utils;
+
+import java.text.MessageFormat;
+import java.text.Normalizer;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
+
+import lombok.extern.slf4j.Slf4j;
+
+import com.nttdata.core.common.constants.CommonConstants;
+import com.nttdata.core.common.model.Page;
+import com.nttdata.core.common.model.PageOrder;
+import com.nttdata.core.context.ConfigProperties;
+
+/**
+ * Class util for page calculation
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L30">@Slf4j</span>
+public class PaginationUtils {
+	
+	/** Private constructor */
+	private PaginationUtils() {
+
+	}
+	
+	/**
+	 * Prepare pagination settings for sql filter
+	 *
+	 * @param configProperties {@link ConfigProperties} the application config properties
+	 * @param search {@link Page} to prepare
+	 */
+	public static void preparePagination(ConfigProperties configProperties, Page&lt;?&gt; search) {		
+<span class="nc bnc" id="L45" title="All 2 branches missed.">		if (search.getCurrentPage() &lt;= 0) {</span>
+<span class="nc" id="L46">			search.setCurrentPage(configProperties.getBbdd().getPagination().getPage());</span>
+		}
+		
+<span class="nc bnc" id="L49" title="All 2 branches missed.">		if (search.getSize() == 0) {</span>
+<span class="nc" id="L50">			search.setSize(configProperties.getBbdd().getPagination().getSize());</span>
+		}
+
+<span class="nc" id="L53">		StringBuilder prefijo = new StringBuilder()</span>
+<span class="nc" id="L54">				.append(StringUtils.defaultString(search.getPrefix(), configProperties.getBbdd().getPagination().getPrefix()));</span>
+<span class="nc" id="L55">		StringBuilder sufijo = new StringBuilder()</span>
+<span class="nc" id="L56">				.append(StringUtils.defaultString(search.getSuffix(), configProperties.getBbdd().getPagination().getSuffix()));</span>
+<span class="nc" id="L57">		prepareOrder(search, sufijo);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">		if (-1 != search.getSize()) {</span>
+<span class="nc" id="L59">			getPaginationLimits(configProperties, search, sufijo);</span>
+		}
+<span class="nc" id="L61">		search.setPrefix(prefijo.toString());</span>
+<span class="nc" id="L62">		search.setSuffix(sufijo.toString());</span>
+<span class="nc" id="L63">	}</span>
+	
+	/**
+	 * Prepare sort settings for sql filters.
+	 * 
+	 * Only valid properties will be added to order by clause
+	 *
+	 * @param search {@link Page} to prepare
+	 * @param sufijo {@link StringBuilder} with pagination query
+	 */
+    protected static void prepareOrder(Page&lt;?&gt; search, StringBuilder sufijo) {
+<span class="nc bnc" id="L74" title="All 4 branches missed.">        if (null == search.getPageOrder() || search.getPageOrder().isEmpty()) {</span>
+<span class="nc" id="L75">            return;</span>
+        }
+<span class="nc" id="L77">        List&lt;String&gt; sb = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        for (PageOrder pageOrder : search.getPageOrder()) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (validatePageOrder(search, pageOrder)) {</span>
+<span class="nc" id="L80">            	addPageOrder(sb, search, pageOrder);</span>
+            }
+<span class="nc" id="L82">        }</span>
+
+<span class="nc" id="L84">        String orderBy = StringUtils.join(sb, CommonConstants.COMMA);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (orderBy.length() &gt; 0) {</span>
+<span class="nc" id="L86">            sufijo.append(CommonConstants.ORDER_BY + CommonConstants.WHITESPACE);</span>
+<span class="nc" id="L87">            sufijo.append(orderBy + CommonConstants.WHITESPACE);</span>
+        }
+<span class="nc" id="L89">    }</span>
+    
+    /**
+	 * Check if the requested property is a valid property inside &lt;code&gt;search&lt;/code&gt; object.
+	 * &lt;br&gt;
+	 * The property is valid when it can be accessed across nested path, although its value can be null.
+	 * &lt;br&gt;
+	 * If sort property is not a valid field in &lt;code&gt;search&lt;/code&gt;, it parent or nested objects it will return false.
+	 *
+	 * @param search {@link Page} to prepare
+	 * @param pageOrder {@link PageOrder} with property to validate
+	 */
+    private static boolean validatePageOrder(Page&lt;?&gt; search, PageOrder pageOrder) {
+		try {
+<span class="nc" id="L103">			return PropertyUtils.isReadable(search, pageOrder.getProperty());</span>
+<span class="nc" id="L104">		} catch (Exception e) {</span>
+<span class="nc" id="L105">			log.info(&quot;Requested sort property cannot be accessed.&quot;, e);</span>
+<span class="nc" id="L106">			return false;</span>
+		}
+	}
+    
+    /**
+	 * Add the property to order by clause.
+	 * 
+	 * If a redefined property exists in {@link OrderByConfig} for &lt;code&gt;search&lt;/code&gt; class and
+	 * 
+	 * {@link PageOrder#getProperty()} then it will be override the current property by this one
+	 * 
+	 * @param sb {@link List} of order by fragments
+	 * @param search {@link Page} to prepare
+	 * @param pageOrder {@link PageOrder} with property to add
+	 */
+	private static void addPageOrder(List&lt;String&gt; sb, Page&lt;?&gt; search, PageOrder pageOrder) {
+<span class="nc" id="L122">		String sortProperty = pageOrder.getProperty();</span>
+			
+<span class="nc" id="L124">		Map&lt;String, PageOrder&gt; sortedProperties = OrderByConfig.getOrderBy(search.getClass());</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">		if (sortedProperties != null) {</span>
+<span class="nc" id="L126">			PageOrder newOrder = sortedProperties.get(sortProperty);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">			if (null != newOrder) {</span>
+<span class="nc" id="L128">				sortProperty = StringUtils.defaultIfBlank(newOrder.getProperty(), pageOrder.getProperty());</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">				if (newOrder.getSortAsString().booleanValue()) {</span>
+<span class="nc" id="L130">					sortProperty = &quot; UPPER(&quot; + Normalizer.normalize(sortProperty, Normalizer.Form.NFD).replaceAll(&quot;[^\\p{ASCII}]&quot;, &quot;&quot;) + &quot;) &quot;;</span>
+				}				
+			}
+		}
+<span class="nc" id="L134">		sb.add(sortProperty + CommonConstants.WHITESPACE + pageOrder.getOrder());</span>
+<span class="nc" id="L135">	}</span>
+	
+	private static void getPaginationLimits(ConfigProperties configProperties, Page&lt;?&gt; dto, StringBuilder sufijo) {
+<span class="nc" id="L138">		MessageFormat msg = new MessageFormat(configProperties.getBbdd().getPagination().getLimits());</span>
+		
+		// Format the pagination limits to avoid locale specific thousand separator
+<span class="nc" id="L141">		NumberFormat nf = NumberFormat.getInstance();</span>
+<span class="nc" id="L142">		nf.setGroupingUsed(false);</span>
+		
+		// No hay problemas de SQL injection aqui pues los datos de registro inicial/final son calculados
+<span class="nc" id="L145">		final int registroInicial = (dto.getCurrentPage() - 1) * dto.getSize();</span>
+<span class="nc" id="L146">		sufijo.append(msg.format(new Object[] {</span>
+<span class="nc" id="L147">			nf.format(dto.getSize()),</span>
+<span class="nc" id="L148">			nf.format(registroInicial)</span>
+		}));
+<span class="nc" id="L150">	}</span>
+	
+	private static void prepareTotalPages(Page&lt;?&gt; dto) {
+<span class="nc bnc" id="L153" title="All 2 branches missed.">		if ((dto.getTotalRecords() == 0)) {</span>
+<span class="nc" id="L154">			dto.setTotalPages(0);</span>
+<span class="nc" id="L155">			return;</span>
+		}
+		
+<span class="nc bnc" id="L158" title="All 2 branches missed.">		if (dto.getSize() == -1) {</span>
+<span class="nc" id="L159">			dto.setTotalPages(1);</span>
+<span class="nc" id="L160">			return;</span>
+		}
+		
+<span class="nc" id="L163">		int totalPaginas = (dto.getTotalRecords() - 1) / dto.getSize() + 1;</span>
+<span class="nc" id="L164">		dto.setTotalPages(totalPaginas);</span>
+<span class="nc" id="L165">	}</span>
+	
+	/**
+	 * Prepare pagination results after sql filter
+	 *
+	 * @param dto {@link Page} to prepare
+	 */
+	public static void preparePaginationResults(Page&lt;?&gt; dto) {
+<span class="nc bnc" id="L173" title="All 2 branches missed.">		if (CollectionUtils.isEmpty(dto.getRecords())) {</span>
+<span class="nc" id="L174">			dto.setTotalRecords(0);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">		} else if (dto.getSize() == -1) {</span>
+<span class="nc" id="L176">			dto.setTotalRecords(dto.getRecords().size());</span>
+		}
+		
+<span class="nc" id="L179">		prepareTotalPages(dto);</span>
+<span class="nc" id="L180">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

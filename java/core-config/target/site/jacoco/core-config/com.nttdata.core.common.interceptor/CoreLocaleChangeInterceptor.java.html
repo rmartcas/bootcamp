@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CoreLocaleChangeInterceptor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.interceptor</a> &gt; <span class="el_source">CoreLocaleChangeInterceptor.java</span></div><h1>CoreLocaleChangeInterceptor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.interceptor;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+
+import com.nttdata.core.common.constants.CoreConstants;
+import com.nttdata.core.common.constants.CommonConstants;
+
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Locale change interceptor extendending {@link LocaleChangeInterceptor}.&lt;br&gt;
+ * Try to change the locale using {@link LocaleChangeInterceptor#getParamName()} if present,
+ * otherwise try to change locale using a path variable &lt;code&gt;lang&lt;/code&gt;.
+ * Valid urls for change are:
+ * 	- core-config/api/core/locale/{es|en}
+ * 	- core-config/api/core/**?locale={es|en}
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L37">public class CoreLocaleChangeInterceptor extends LocaleChangeInterceptor {</span>
+	
+	/** 
+	 * Default path variable name to retrieve the new locale.
+	 * @param pathVariableName {@link String} The pathVariableName
+	 * @return {@link String} the pathVariableName
+	 */
+<span class="nc" id="L44">	@Getter</span>
+<span class="nc" id="L45">	@Setter</span>
+	private String pathVariableName = CoreConstants.PATH_VARIABLE_LANG;
+
+	/**
+	 * Handles request to change locale using path variable
+	 * 
+	 * @param request The request to handle
+	 * @param response The response
+	 * @param handler Handler method
+	 * @throws ServletException if error
+	 */
+	@SuppressWarnings(CommonConstants.UNCHECKED)
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws ServletException {
+
+<span class="nc" id="L61">		CoreHttpServletRequestWrapper wrapper = new CoreHttpServletRequestWrapper(request);</span>
+
+<span class="nc bnc" id="L63" title="All 2 branches missed.">		if (null == request.getParameter(getParamName())) {</span>
+<span class="nc" id="L64">			HandlerMethod handlerMethod = (HandlerMethod) handler;</span>
+			//Get the annotation @PathVariable from method handler parameters if any:
+<span class="nc bnc" id="L66" title="All 2 branches missed.">			for (MethodParameter parameter : handlerMethod.getMethodParameters()) {</span>
+<span class="nc" id="L67">				PathVariable pathVariable = parameter.getParameterAnnotation(PathVariable.class);</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">				if (null != pathVariable &amp;&amp; pathVariableName.equalsIgnoreCase(pathVariable.name())) {</span>
+					//Method has a @PathVariable with name equals pathVariableName, get the value and add to wrapper request parameters
+<span class="nc" id="L70">					Map&lt;String, String&gt; lang = (Map&lt;String, String&gt;) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);</span>
+<span class="nc" id="L71">					wrapper.addParameter(getParamName(), lang.get(getPathVariableName()));</span>
+<span class="nc" id="L72">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L76">		return super.preHandle(wrapper, response, handler);</span>
+	}
+	
+	/**
+	 * Wrapper class for HttpServletRequest witch allows add new parameters to request
+	 * 
+	 * @author NTT DATA
+	 * @since 0.0.1
+	 */
+	class CoreHttpServletRequestWrapper extends HttpServletRequestWrapper {
+		
+<span class="nc" id="L87">		private Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+		
+		/**
+		 * Instantiates a CoreHttpServletRequestWrapper.
+		 *
+		 * @param request the request to wrap
+		 */
+<span class="nc" id="L94">		public CoreHttpServletRequestWrapper(HttpServletRequest request) {</span>
+<span class="nc" id="L95">			super(request);</span>
+<span class="nc" id="L96">		}</span>
+		
+		/**
+		 * Add a new parameter to the request
+		 * 
+		 * @param paramName the name of the parameter
+		 * @param paramValue the value of the parameter
+		 */
+		public void addParameter(String paramName, String paramValue) {
+<span class="nc" id="L105">			params.put(paramName, paramValue);</span>
+<span class="nc" id="L106">		}</span>
+		
+		/**
+		 * Gets the requested parameter value.&lt;br&gt;
+		 * If parameter exists in wrapped request this is returned
+		 *  otherwise return the param in the {@link CoreHttpServletRequestWrapper#params}
+		 * 
+		 * @param name the parameter to get
+		 * @return String parameter value
+		 */
+		@Override
+		public String getParameter(String name) {
+<span class="nc" id="L118">			String parameter = super.getParameter(name);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">			if (null == parameter) {</span>
+<span class="nc" id="L120">				parameter = params.get(name);</span>
+			}
+<span class="nc" id="L122">			return parameter;</span>
+		}
+	}
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

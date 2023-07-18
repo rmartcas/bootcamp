@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApiEndpointServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.mappings.service.impl</a> &gt; <span class="el_source">ApiEndpointServiceImpl.java</span></div><h1>ApiEndpointServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.mappings.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.hdiv.util.Constants;
+import org.hdiv.util.HDIVUtil;
+import org.hdiv.util.Method;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.PathMatcher;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.pattern.PathPattern;
+
+import com.nttdata.core.common.constants.CommonConstants;
+import com.nttdata.core.common.constants.CoreConstants;
+import com.nttdata.core.common.exception.CoreException;
+import com.nttdata.core.common.model.CoreUser;
+import com.nttdata.core.context.ConfigProperties;
+import com.nttdata.core.mappings.model.Mapping;
+import com.nttdata.core.mappings.service.ApiEndpointService;
+import com.nttdata.core.mappings.service.MappingService;
+import com.nttdata.core.security.hdiv.CustomLinkUrlProcessor;
+import com.nttdata.core.security.recaptcha.annotation.Recaptcha;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Endpoint service implementation to get the user allowed endpoints
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L49">@Slf4j</span>
+@Service
+<span class="nc" id="L51">public class ApiEndpointServiceImpl implements ApiEndpointService {</span>
+	
+	/** Handler mapping with all controller mappings */
+	@Autowired
+	@Qualifier(&quot;requestMappingHandlerMapping&quot;)
+	private RequestMappingHandlerMapping handlerMapping;
+	
+	@Autowired
+	private MappingService mappingService;
+	
+	@Autowired
+    @Qualifier(&quot;customLinkUrlProcessor&quot;)
+	private CustomLinkUrlProcessor urlProcessor;
+	
+	@Autowired
+	private ConfigProperties configProperties;
+
+	/* (non-Javadoc)
+	 * @see com.nttdata.core.mappings.service.ApiEndpointService#getApiEndpoints()
+	 */
+	@Override
+	public Map&lt;String, Object&gt; getApiEndpoints(CoreUser user) {
+<span class="nc" id="L73">		Map&lt;String, Object&gt; endpoints = new HashMap&lt;&gt;();</span>
+		
+<span class="nc" id="L75">		List&lt;String&gt; userMappings = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L76">	    List&lt;Mapping&gt; apiMappings = new ArrayList&lt;&gt;(); </span>
+		try {
+<span class="nc" id="L78">			userMappings = mappingService.getUserMappings(user);</span>
+<span class="nc" id="L79">			apiMappings = mappingService.getApiMappings();</span>
+<span class="nc" id="L80">		} catch (CoreException e) {</span>
+<span class="nc" id="L81">			log.error(&quot;Could not get mappings&quot;, e);</span>
+<span class="nc" id="L82">		}</span>
+		
+<span class="nc" id="L84">		PathMatcher pathMatcher = handlerMapping.getPathMatcher();</span>
+<span class="nc" id="L85">	    Set&lt;Entry&lt;RequestMappingInfo, HandlerMethod&gt;&gt; entrySet = handlerMapping.getHandlerMethods().entrySet();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">		for (Entry&lt;RequestMappingInfo, HandlerMethod&gt; entry : entrySet) {</span>
+			//Por cada mapping, iteramos por su patrones y métodos y generamos el acceso
+			//siempre que el usuario tenga acceso al mapping y no sea una exclusión de hdiv, en cuyo caso
+			// no es necesario pasarlo por hdiv.
+<span class="nc" id="L90">            PathPatternsRequestCondition patternsCondition = entry.getKey().getPathPatternsCondition();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">			if (null != patternsCondition) {</span>
+<span class="nc" id="L92">				checkApiEndpointEntry(entry, endpoints, apiMappings, userMappings,</span>
+<span class="nc" id="L93">						pathMatcher, patternsCondition.getPatterns());</span>
+			}
+<span class="nc" id="L95">		}</span>
+		
+		//add logout url
+<span class="nc" id="L98">		endpoints.put(&quot;logout&quot;, configProperties.getSecurity().getUrl().getLogout());</span>
+<span class="nc" id="L99">		return endpoints;</span>
+	}
+
+	/**
+	 * Verify if the user has access to the requested entry.
+	 * &lt;br&gt;
+	 * If user is allowed to the path a {@link Map}&amp;lt;{@link String}, {@link Object}&amp;gt; is populated
+	 * with tokenized path as map keys like:
+	 * 
+	 * map[&quot;path&quot;][&quot;to&quot;][&quot;endpoint&quot;] = &quot;/path/to/endpoint&quot;
+	 *
+	 * @param entry {@link Entry}&amp;lt;{@link RequestMappingInfo}, {@link HandlerMethod}&amp;gt; to check
+	 * @param endpoints {@link Map}&amp;lt;{@link String}, {@link Object}&amp;gt; where path are stored
+	 * @param apiMappings {@link List}&amp;lt;{@link Mapping}&amp;gt; The security list of mappings patterns and access roles
+	 * @param userMappings {@link List}&amp;lt;{@link String}&amp;gt; List of allowed patterns user can access
+	 * @param pathMatcher {@link PathMatcher} to test path agains request mappings
+	 */
+	private void checkApiEndpointEntry(Entry&lt;RequestMappingInfo, HandlerMethod&gt; entry, Map&lt;String, Object&gt; endpoints,
+			List&lt;Mapping&gt; apiMappings, List&lt;String&gt; userMappings, PathMatcher pathMatcher, Set&lt;PathPattern&gt; patterns) {
+<span class="nc" id="L118">		Set&lt;RequestMethod&gt; methods = entry.getKey().getMethodsCondition().getMethods();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">		for (PathPattern path : patterns) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">			if (checkPathAccess(path.getPatternString(), pathMatcher, apiMappings, userMappings)) {</span>
+<span class="nc" id="L121">				HttpServletRequest httpRequest = HDIVUtil.getCurrentHttpRequest();</span>
+<span class="nc" id="L122">				String contextPath = httpRequest.getContextPath();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">				for (RequestMethod method : methods) {</span>
+<span class="nc" id="L124">					String processUrl = urlProcessor.processUrl(HDIVUtil.getRequestContext(httpRequest), contextPath + path, Constants.ENCODING_UTF_8, Method.secureValueOf(method.toString()));</span>
+<span class="nc" id="L125">					processUrl = processUrl.substring(contextPath.length());</span>
+<span class="nc" id="L126">					generatePathMap(endpoints, path.getPatternString(), processUrl, method);</span>
+<span class="nc" id="L127">					addRecapchaIfNeccesary(entry, endpoints, path.getPatternString(), method);</span>
+<span class="nc" id="L128">				}</span>
+			}
+<span class="nc" id="L130">		}</span>
+<span class="nc" id="L131">	}</span>
+	
+	private void addRecapchaIfNeccesary(Entry&lt;RequestMappingInfo, HandlerMethod&gt; entry, Map&lt;String, Object&gt; endpoints, String path,
+			RequestMethod method) {
+<span class="nc bnc" id="L135" title="All 2 branches missed.">		if (configProperties.getSecurity().getRecaptcha().isEnabled()) {</span>
+<span class="nc" id="L136">			Recaptcha recaptcha = AnnotationUtils.findAnnotation(entry.getValue().getMethod(), Recaptcha.class);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">			if (null == recaptcha) {</span>
+<span class="nc" id="L138">				recaptcha = AnnotationUtils.findAnnotation(entry.getValue().getBeanType(), Recaptcha.class);</span>
+			}
+<span class="nc bnc" id="L140" title="All 2 branches missed.">			if (recaptcha != null) {</span>
+<span class="nc" id="L141">				generateRecaptchaPathMap(endpoints, path, method, recaptcha.action());	</span>
+			}	
+		}
+<span class="nc" id="L144">	}</span>
+	
+	/**
+	 * Populate the &lt;code&gt;endpoints&lt;/code&gt; map with path and processedPath as value
+	 *
+	 * @param endpoints {@link Map}&amp;lt;{@link String}, {@link Object}&amp;gt; where path are stored
+	 * @param path {@link String} the path to populate
+	 * @param processedPath {@link String} hdiv secured path
+	 * @param method {@link RequestMethod} the request method
+	 */
+	@SuppressWarnings(CommonConstants.UNCHECKED)
+	protected void generatePathMap(Map&lt;String, Object&gt; endpoints, String path, Object processedPath, RequestMethod method) {
+<span class="nc" id="L156">	    int start = 0;</span>
+<span class="nc" id="L157">	    String mapPath = path.replace(CoreConstants.API_BASE, CommonConstants.EMPTY_STRING) + CommonConstants.FORWARD_SLASH + method + CommonConstants.FORWARD_SLASH + &quot;url&quot;;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">	    for (int end; (end = mapPath.indexOf(CommonConstants.FORWARD_SLASH, start)) != -1; start = end + 1) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">	    	if (!CommonConstants.EMPTY_STRING.equalsIgnoreCase(mapPath.substring(start, end))) {</span>
+<span class="nc" id="L160">	    		endpoints = (Map&lt;String, Object&gt;) endpoints.computeIfAbsent(mapPath.substring(start, end), k -&gt; new HashMap&lt;String, Object&gt;());	    		</span>
+	    	}
+	    }
+<span class="nc" id="L163">	    endpoints.put(mapPath.substring(start), processedPath);</span>
+<span class="nc" id="L164">	}</span>
+	
+	@SuppressWarnings(CommonConstants.UNCHECKED)
+	protected void generateRecaptchaPathMap(Map&lt;String, Object&gt; endpoints, String path, RequestMethod method, String action) {
+<span class="nc" id="L168">	    int start = 0;</span>
+<span class="nc" id="L169">	    String mapPath = path.replace(CoreConstants.API_BASE, CommonConstants.EMPTY_STRING) + CommonConstants.FORWARD_SLASH + method + CommonConstants.FORWARD_SLASH + &quot;action&quot;;</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">	    for (int end; (end = mapPath.indexOf(CommonConstants.FORWARD_SLASH, start)) != -1; start = end + 1) {</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">	    	if (!CommonConstants.EMPTY_STRING.equalsIgnoreCase(mapPath.substring(start, end))) {</span>
+<span class="nc" id="L172">	    		endpoints = (Map&lt;String, Object&gt;) endpoints.computeIfAbsent(mapPath.substring(start, end), k -&gt; new HashMap&lt;String, Object&gt;());	    		</span>
+	    	}
+	    }
+<span class="nc" id="L175">	    endpoints.put(mapPath.substring(start), action);</span>
+<span class="nc" id="L176">	}</span>
+
+	/**
+	 * Check if the user has access to the requested path.
+	 * &lt;br&gt;
+	 * Path must match al least one {@link Mapping} pattern in the request mapping list and
+	 * matched pattern must be in user mapping allowed list.
+	 *
+	 * @param path {@link String} the path to check
+	 * @param pathMatcher {@link PathMatcher} to test path agains request mappings
+	 * @param requestMappings {@link List}&amp;lt;{@link Mapping}&amp;gt; The security list of mappings patterns and access roles
+	 * @param userMappings {@link List}&amp;lt;{@link String}&amp;gt; List of allowed patterns user can access
+	 * @return boolean. True if path has a matching request mapping pattern and user has access to this pattern.
+	 */
+	protected boolean checkPathAccess(String path, PathMatcher pathMatcher, List&lt;Mapping&gt; requestMappings,
+			List&lt;String&gt; userMappings) {
+<span class="nc" id="L192">		return null != requestMappings.stream()</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">			.filter(e -&gt; pathMatcher.match(e.getPattern(), path) </span>
+<span class="nc bnc" id="L194" title="All 4 branches missed.">					&amp;&amp; userMappings.contains(e.getPattern())).findFirst().orElse(null);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

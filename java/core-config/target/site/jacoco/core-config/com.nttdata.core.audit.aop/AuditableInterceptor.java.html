@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuditableInterceptor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.audit.aop</a> &gt; <span class="el_source">AuditableInterceptor.java</span></div><h1>AuditableInterceptor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.audit.aop;
+
+import java.util.Calendar;
+import java.util.UUID;
+
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.nttdata.core.audit.annotation.Auditable;
+import com.nttdata.core.audit.AuditableStepsEnum;
+import com.nttdata.core.audit.model.Audit;
+import com.nttdata.core.audit.service.AuditableService;
+import com.nttdata.core.common.model.Core;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Auditable interceptor for all methods annotated with {@link Auditable}
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L30">@Slf4j</span>
+<span class="nc" id="L31">public class AuditableInterceptor implements MethodInterceptor {</span>
+	
+	/** The auditable service */
+	@Autowired
+	private AuditableService auditableService;
+	
+	/**
+	 * Create a new audit record with previous data before call the annotated method 
+	 * and a second record with the data after call the annotated method.
+	 * 
+	 * @param invocation MethodInvocation with interceptor data
+	 * @return Object intercepted method result
+	 * @throws Throwable if any error
+	 */
+	@Override
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+<span class="nc" id="L47">		Audit auditDto = null;</span>
+		try {
+<span class="nc" id="L49">			Auditable auditable = AnnotationUtils.findAnnotation(invocation.getMethod(), Auditable.class);</span>
+			
+<span class="nc" id="L51">			Core&lt;?&gt; data = getData(invocation.getArguments(), auditable);</span>
+<span class="nc" id="L52">			auditDto = getAudit(auditable, data);</span>
+			
+			//Saves the audit record before the action
+<span class="nc" id="L55">			auditableService.insert(auditDto);</span>
+<span class="nc" id="L56">		} catch (Exception e) {</span>
+<span class="nc" id="L57">			log.error(&quot;Error ocurred before audit.&quot;, e);</span>
+<span class="nc" id="L58">		}</span>
+
+<span class="nc" id="L60">		Object result = invocation.proceed();</span>
+		
+		try {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">			if (null != auditDto) {</span>
+				//Update the record inside auditDto
+<span class="nc bnc" id="L65" title="All 2 branches missed.">				if (result instanceof Core&lt;?&gt;) {</span>
+<span class="nc" id="L66">					auditDto.setData((Core&lt;?&gt;) result);</span>
+				}
+				
+				//Set the next step to perform
+<span class="nc" id="L70">				auditDto.setStep(AuditableStepsEnum.AFTER);</span>
+				
+				//Saves the audit record after the action
+<span class="nc" id="L73">				auditableService.insert(auditDto);</span>
+			}	
+<span class="nc" id="L75">		} catch (Exception e) {</span>
+<span class="nc" id="L76">			log.error(&quot;Error ocurred after audit.&quot;, e);</span>
+<span class="nc" id="L77">		}</span>
+
+<span class="nc" id="L79">	    return result;</span>
+	}
+	
+	/**
+	 * Get the parameter at specified index.&lt;br&gt;
+	 * If null or invalid iterates all parameters to find the object that extends {@link Core}.
+	 * 
+	 * @param args The arguments of the intercepted method.
+	 * @param index {@link Byte} the index where the object should be.
+	 * @return {@link Core} the record to audit or null if not found
+	 */
+	private Core&lt;?&gt; getData(Object[] args, Auditable auditable) {
+<span class="nc" id="L91">		Core&lt;?&gt; data = null;</span>
+		try {
+<span class="nc" id="L93">			data = (Core&lt;?&gt;) args[auditable.paramIndex()];</span>
+<span class="nc" id="L94">		} catch (Exception e) {</span>
+<span class="nc" id="L95">			log.error(&quot;The auditable paramIndex is out of bounds or cannot be casted to Core object&quot;, e);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">			for (Object arg : args) {</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">				if (arg instanceof Core&lt;?&gt;) {</span>
+<span class="nc" id="L98">					data = (Core&lt;?&gt;) arg;</span>
+<span class="nc" id="L99">					break;</span>
+	            }
+	        }
+<span class="nc" id="L102">		}</span>
+<span class="nc" id="L103">		return data;</span>
+	}
+		
+	private Audit getAudit(Auditable auditable, Core&lt;?&gt; data) {
+<span class="nc" id="L107">        String pairKey = String.valueOf(UUID.randomUUID().toString());</span>
+<span class="nc" id="L108">        String requestId = MDC.get(&quot;requestId&quot;);</span>
+        
+<span class="nc" id="L110">		Audit auditDto = new Audit();</span>
+<span class="nc" id="L111">		auditDto.setTable(auditable.table());</span>
+<span class="nc" id="L112">		auditDto.setPrimaryKey(auditable.primaryKey());</span>
+<span class="nc" id="L113">		auditDto.setAction(auditable.action());</span>
+<span class="nc" id="L114">		auditDto.setStep(AuditableStepsEnum.BEFORE);</span>
+<span class="nc" id="L115">		auditDto.setPairKey(pairKey);</span>
+<span class="nc" id="L116">		auditDto.setRequestId(requestId);</span>
+<span class="nc" id="L117">		auditDto.setUser(SecurityContextHolder.getContext().getAuthentication().getName());</span>
+<span class="nc" id="L118">		auditDto.setData(data);</span>
+<span class="nc" id="L119">		auditDto.setCreated(Calendar.getInstance().getTime());</span>
+		
+<span class="nc" id="L121">		return auditDto;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

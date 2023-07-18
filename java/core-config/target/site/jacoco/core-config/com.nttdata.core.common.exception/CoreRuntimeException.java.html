@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CoreRuntimeException.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.exception</a> &gt; <span class="el_source">CoreRuntimeException.java</span></div><h1>CoreRuntimeException.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.exception;
+
+/**
+ * Core runtime exception to extend in applications
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+public abstract class CoreRuntimeException extends RuntimeException {
+
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 14443223432L;
+	
+	/** Custom error message to show */
+	private final String errorMessage;
+
+	/**
+	 * Instantiates a new core runtime exception.
+	 *
+	 * @param message the message
+	 */
+	protected CoreRuntimeException(String message) {
+<span class="nc" id="L26">		super(message);</span>
+<span class="nc" id="L27">		this.errorMessage = message;</span>
+<span class="nc" id="L28">	}</span>
+	
+	/**
+	 * Instantiates a new core runtime exception.
+	 *
+	 * @param t the throwable
+	 */
+	protected CoreRuntimeException(Throwable t) {
+<span class="nc" id="L36">		super(t);</span>
+<span class="nc" id="L37">		this.errorMessage = null;</span>
+<span class="nc" id="L38">	}</span>
+	
+	/**
+	 * Instantiates a new core runtime exception.
+	 *
+	 * @param message the message
+	 * @param t the throwable
+	 */
+	protected CoreRuntimeException(String message, Throwable t) {
+<span class="nc" id="L47">		super(message, t);</span>
+<span class="nc" id="L48">		this.errorMessage = message;</span>
+<span class="nc" id="L49">	}</span>
+	
+	/**
+	 * Returns the error message of the exception
+	 * 
+	 * @return String with error message or null if not defined
+	 */
+	public String getErrorMessage() {
+<span class="nc" id="L57">		return this.errorMessage;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

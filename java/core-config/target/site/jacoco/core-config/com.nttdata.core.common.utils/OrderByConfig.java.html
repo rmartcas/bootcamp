@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OrderByConfig.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.utils</a> &gt; <span class="el_source">OrderByConfig.java</span></div><h1>OrderByConfig.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.utils;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.nttdata.core.common.model.PageOrder;
+
+/**
+ * Class to define the allowed properties used to order queries.&lt;br&gt;
+ * 
+ * If a class ProfilePage has a &quot;filters.id&quot; property you can define that this
+ * property is mapped to &quot;profile_id&quot; column.
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ *
+ */
+public final class OrderByConfig {
+
+<span class="nc" id="L23">	private Map&lt;Class&lt;?&gt;, Map&lt;String, PageOrder&gt;&gt; orderBy = null;</span>
+
+<span class="nc" id="L25">	private static OrderByConfig instance = null;</span>
+
+<span class="nc" id="L27">	private OrderByConfig() {</span>
+<span class="nc" id="L28">		orderBy = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L29">	}</span>
+
+	public static OrderByConfig getInstance() {
+<span class="nc bnc" id="L32" title="All 2 branches missed.">		if (instance == null) {</span>
+<span class="nc" id="L33">			instance = new OrderByConfig();</span>
+		}
+
+<span class="nc" id="L36">		return instance;</span>
+	}
+
+	public static Map&lt;String, PageOrder&gt; getOrderBy(Class&lt;?&gt; clazz) {
+<span class="nc" id="L40">		return getInstance().orderBy.get(clazz);</span>
+	}
+
+	public static void addOrderBy(Class&lt;?&gt; clazz, String field, PageOrder order) {
+<span class="nc bnc" id="L44" title="All 2 branches missed.">		if (null == getOrderBy(clazz)) {</span>
+<span class="nc" id="L45">			getInstance().orderBy.put(clazz, new HashMap&lt;&gt;());</span>
+		}
+<span class="nc" id="L47">		getInstance().orderBy.get(clazz).put(field, order);</span>
+<span class="nc" id="L48">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

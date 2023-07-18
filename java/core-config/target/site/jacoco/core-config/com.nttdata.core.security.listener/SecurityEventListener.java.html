@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SecurityEventListener.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.listener</a> &gt; <span class="el_source">SecurityEventListener.java</span></div><h1>SecurityEventListener.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.listener;
+
+import ch.qos.logback.classic.ClassicConstants;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.access.event.AbstractAuthorizationEvent;
+import org.springframework.security.access.event.AuthenticationCredentialsNotFoundEvent;
+import org.springframework.security.access.event.AuthorizationFailureEvent;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.authentication.event.AuthenticationFailureExpiredEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.nttdata.core.common.constants.CommonConstants;
+import com.nttdata.core.security.events.AdminTaskEvent;
+import com.nttdata.core.security.events.CommunicationEvent;
+import com.nttdata.core.security.events.FileAndResourcesEvent;
+import com.nttdata.core.security.events.InputValidationEvent;
+import com.nttdata.core.security.events.SensitiveDataEvent;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Event listener to log security events
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="fc" id="L38">@Slf4j</span>
+<span class="nc" id="L39">public class SecurityEventListener {</span>
+	
+	/** Generic marker for all security logs */
+<span class="fc" id="L42">	public static final Marker SECURITY_MARKER = MarkerFactory.getMarker(CommonConstants.SECURITY);</span>
+	
+<span class="nc" id="L44">	enum SecurityCategories {</span>
+<span class="nc" id="L45">		ADMIN_TASK(&quot;Origin: {}, User: {}, Task type: {}, Details: {}&quot;),</span>
+<span class="nc" id="L46">		AUTHENTICATION(&quot;Origin: {}, User: {}, Application: {}, Result: {}&quot;),</span>
+<span class="nc" id="L47">		AUTHORIZATION(&quot;Origin: {}, User: {}, Application: {}, Resource: {}, Result: {}&quot;),</span>
+<span class="nc" id="L48">		COMMUNICATIONS_SECURITY(&quot;Origin: {}, Target URL: {}, Result: {}&quot;),</span>
+<span class="nc" id="L49">		FILES_AND_RESOURCES(&quot;User: {}, Document: {}, Information: {}&quot;),</span>
+<span class="nc" id="L50">		INPUT_VALIDATION(&quot;Origin: {}, User: {}, Request: {}, Result: {}&quot;),</span>
+<span class="nc" id="L51">		SENSITIVE_DATA(&quot;Origin: {}, User: {}, Repository: {}, Request: {}&quot;);</span>
+		
+<span class="nc" id="L53">		@Getter</span>
+		private final String logInfo;
+		
+<span class="nc" id="L56">		private SecurityCategories(String logInfo) {</span>
+<span class="nc" id="L57">			this.logInfo = logInfo;</span>
+<span class="nc" id="L58">		}</span>
+	}
+
+	/**
+	 * Event listener for {@link AuthenticationSuccessEvent} events
+	 * @param event {@link AuthenticationSuccessEvent} to log
+	 */
+	@EventListener
+	public void onApplicationAuthenticationEvent(AuthenticationSuccessEvent event) {
+<span class="nc" id="L67">		logEvent(SecurityCategories.AUTHENTICATION, getRemoteIP(),</span>
+<span class="nc" id="L68">				event.getAuthentication().getName(), getRequestUri(), &quot;Authenticated session&quot;);</span>
+<span class="nc" id="L69">	}</span>
+	
+	/**
+	 * Event listener for {@link AuthenticationFailureExpiredEvent} events
+	 * @param event {@link AuthenticationFailureExpiredEvent} to log
+	 */
+	@EventListener
+	public void onApplicationAuthenticationEvent(AuthenticationFailureExpiredEvent event) {
+<span class="nc" id="L77">		logEvent(SecurityCategories.AUTHENTICATION, getRemoteIP(),</span>
+<span class="nc" id="L78">				event.getAuthentication().getName(), getRequestUri(), &quot;Expired ID&quot;);</span>
+<span class="nc" id="L79">	}</span>
+	
+	/**
+	 * Event listener for {@link AuthenticationFailureBadCredentialsEvent} events
+	 * @param event {@link AuthenticationFailureBadCredentialsEvent} to log
+	 */
+	@EventListener
+	public void onApplicationAuthenticationEvent(AuthenticationFailureBadCredentialsEvent event) {
+<span class="nc" id="L87">		logEvent(SecurityCategories.AUTHENTICATION, getRemoteIP(),</span>
+<span class="nc" id="L88">				event.getAuthentication().getName(), getRequestUri(), &quot;Invalid credentials&quot;);</span>
+<span class="nc" id="L89">	}</span>
+	
+	/**
+	 * Event listener for {@link AbstractAuthorizationEvent} events
+	 * @param event {@link AbstractAuthorizationEvent} to log
+	 */
+	@EventListener
+	public void onApplicationAuthorizationEvent(AbstractAuthorizationEvent event) {
+<span class="nc" id="L97">		String result = CommonConstants.OK;</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">		if (event instanceof AuthenticationCredentialsNotFoundEvent </span>
+				|| event instanceof AuthorizationFailureEvent) {
+<span class="nc" id="L100">			result = CommonConstants.KO;</span>
+		}
+<span class="nc" id="L102">		logEvent(SecurityCategories.AUTHORIZATION, getRemoteIP(), getUser(),</span>
+<span class="nc" id="L103">				CommonConstants.EMPTY_STRING, getRequestUri(), result);</span>
+<span class="nc" id="L104">	}</span>
+	
+	/**
+	 * Event listener for {@link InputValidationEvent} events
+	 * @param event {@link InputValidationEvent} to log
+	 */
+	@EventListener
+	public void onApplicationInputValidationEvent(InputValidationEvent event) {
+<span class="nc" id="L112">		logEvent(SecurityCategories.INPUT_VALIDATION, getRemoteIP(), </span>
+<span class="nc" id="L113">				getUser(), getRequestUri(), CommonConstants.KO);</span>
+<span class="nc" id="L114">	}</span>
+	
+	/**
+	 * Event listener for {@link AdminTaskEvent} events
+	 * @param event {@link AdminTaskEvent} to log
+	 */
+	@EventListener
+	public void onApplicationAdminTaskEvent(AdminTaskEvent event) {
+<span class="nc" id="L122">		logEvent(SecurityCategories.ADMIN_TASK, getRemoteIP(),</span>
+<span class="nc" id="L123">				getUser(), event.getTaskType(), event.getDetails());</span>
+<span class="nc" id="L124">	}</span>
+	
+	/**
+	 * Event listener for {@link CommunicationEvent} events
+	 * @param event {@link CommunicationEvent} to log
+	 */
+	@EventListener
+	public void onApplicationCommunicationEvent(CommunicationEvent event) {
+<span class="nc" id="L132">		logEvent(SecurityCategories.COMMUNICATIONS_SECURITY,</span>
+<span class="nc" id="L133">				getRemoteIP(), event.getSource().toString(), CommonConstants.KO);</span>
+<span class="nc" id="L134">	}</span>
+	
+	/**
+	 * Event listener for {@link FileAndResourcesEvent} events
+	 * @param event {@link FileAndResourcesEvent} to log
+	 */
+	@EventListener
+	public void onApplicationFileAndResourcesEvent(FileAndResourcesEvent event) {
+<span class="nc" id="L142">		logEvent(SecurityCategories.FILES_AND_RESOURCES,</span>
+<span class="nc" id="L143">				getUser(), event.getSource().toString());</span>
+<span class="nc" id="L144">	}</span>
+	
+	/**
+	 * Event listener for {@link SensitiveDataEvent} events
+	 * @param event {@link SensitiveDataEvent} to log
+	 */
+	@EventListener
+	public void onApplicationSensitiveDataEvent(SensitiveDataEvent event) {
+<span class="nc" id="L152">		logEvent(SecurityCategories.SENSITIVE_DATA, getRemoteIP(), getUser(),</span>
+<span class="nc" id="L153">				event.getSource().toString(), getRequestUri());</span>
+<span class="nc" id="L154">	}</span>
+	
+	/**
+	 * Log the event info under requested category with specified params
+	 * @param category {@link SecurityCategories} to log
+	 * @param params {@link Object} to log
+	 */
+	private void logEvent(SecurityCategories category, Object... params) {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">		if (log.isInfoEnabled()) {</span>
+<span class="nc" id="L163">			Marker categoryMarker = MarkerFactory.getMarker(category.toString());</span>
+<span class="nc" id="L164">			categoryMarker.add(SECURITY_MARKER);</span>
+<span class="nc" id="L165">			log.info(categoryMarker, category.getLogInfo(), params);</span>
+		}
+<span class="nc" id="L167">	}</span>
+	
+	protected String getRemoteIP() {
+<span class="nc" id="L170">		String remoteIP = MDC.get(ClassicConstants.REQUEST_X_FORWARDED_FOR);		</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">		if(CommonConstants.EMPTY_STRING.equals(StringUtils.trimToEmpty(remoteIP))) {</span>
+<span class="nc" id="L172">			remoteIP = MDC.get(ClassicConstants.REQUEST_REMOTE_HOST_MDC_KEY);</span>
+		}
+
+<span class="nc" id="L175">		return StringUtils.trimToEmpty(remoteIP);</span>
+	}
+	
+	protected String getUser() {
+<span class="nc" id="L179">		String user = null;</span>
+<span class="nc" id="L180">		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">		if (null != authentication) {</span>
+<span class="nc" id="L182">			user = authentication.getName();</span>
+		} 
+<span class="nc" id="L184">		return StringUtils.defaultString(user, &quot;anonymousUser&quot;);</span>
+	}
+	
+	protected String getRequestUri() {
+<span class="nc" id="L188">		String uri = MDC.get(ClassicConstants.REQUEST_REQUEST_URI);</span>
+<span class="nc" id="L189">		String query = MDC.get(ClassicConstants.REQUEST_QUERY_STRING);</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">		if(!CommonConstants.EMPTY_STRING.equals(StringUtils.trimToEmpty(query))) {</span>
+<span class="nc" id="L191">			uri += &quot;?&quot; + query;</span>
+		}
+
+<span class="nc" id="L194">		return StringUtils.trimToEmpty(uri);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExportableCursorHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.crud.handler</a> &gt; <span class="el_source">ExportableCursorHandler.java</span></div><h1>ExportableCursorHandler.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.crud.handler;
+
+import java.io.InputStream;
+import org.apache.ibatis.cursor.Cursor;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import com.nttdata.core.common.model.Core;
+import com.nttdata.core.crud.model.CrudDataLoad;
+
+/**
+ * Generic handler interface used to convert a {@link Cursor} of T
+ * to a {@link InputStream}.
+ *
+ * @see ExcelExportableCursorHandler
+ * @param &lt;T&gt; Any object extending {@link Core}
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+public interface ExportableCursorHandler&lt;T extends Core&lt;?&gt;&gt; {
+
+	/**
+	 * Export the data in &lt;code&gt;cursor&lt;/code&gt;.&lt;br&gt;
+	 * To support export process a {@link CrudDataLoad} should be passed.&lt;br&gt;
+	 * 
+	 * @param cursor {@link Cursor} of {@link T} the cursor to export
+	 * @param dataload {@link CrudDataLoad} used to support the export process.
+	 * @return {@link InputStream} the resulting exported data file
+	 */
+	InputStream export(Cursor&lt;T&gt; cursor, CrudDataLoad dataload);
+	
+	/**
+	 * Create a default header style to apply to header columns
+	 *
+	 * @param workbook {@link Workbook} the workbook used
+	 * @return {@link CellStyle} the default header style
+	 */
+	default CellStyle createDefaultHeaderStyle(Workbook workbook) {
+<span class="fc" id="L46">		CellStyle style = workbook.createCellStyle();</span>
+<span class="fc" id="L47">		Font font = workbook.createFont();</span>
+<span class="fc" id="L48">		font.setBold(true);</span>
+<span class="fc" id="L49">		font.setFontHeightInPoints((short) 16);</span>
+<span class="fc" id="L50">		font.setColor(IndexedColors.WHITE.getIndex());</span>
+<span class="fc" id="L51">		style.setFont(font);</span>
+<span class="fc" id="L52">		style.setFillForegroundColor(IndexedColors.GREEN.getIndex());</span>
+<span class="fc" id="L53">		style.setFillPattern(FillPatternType.SOLID_FOREGROUND);</span>
+<span class="fc" id="L54">		style.setAlignment(HorizontalAlignment.CENTER);</span>
+<span class="fc" id="L55">		return style;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuditableAdvisor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.audit.aop</a> &gt; <span class="el_source">AuditableAdvisor.java</span></div><h1>AuditableAdvisor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.audit.aop;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.springframework.aop.Pointcut;
+import org.springframework.aop.support.AbstractPointcutAdvisor;
+import org.springframework.aop.support.StaticMethodMatcherPointcut;
+import org.springframework.core.annotation.AnnotationUtils;
+
+import com.nttdata.core.audit.annotation.Auditable;
+import com.nttdata.core.common.constants.CommonConstants;
+
+import lombok.EqualsAndHashCode;
+
+/**
+ * AuditableAdvisor to catch {@link Auditable} annotation over interfaces
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="pc bpc" id="L28" title="1 of 6 branches missed.">@EqualsAndHashCode(callSuper = false)</span>
+public class AuditableAdvisor extends AbstractPointcutAdvisor {
+
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
+	
+	/** The method interceptor */
+	private final transient MethodInterceptor interceptor;
+	
+	/** Auditable pointcut */
+	private final transient StaticMethodMatcherPointcut pointcut;
+
+	/**
+	 * Constructor.
+	 * @param auditableInterceptor {@link AuditableInterceptor} the interceptor to use
+	 * @param excluded {@link String} array of excluded classes and methods to be audited.
+	 */
+	public AuditableAdvisor(AuditableInterceptor auditableInterceptor, String... excluded) {
+<span class="nc" id="L46">		super();</span>
+<span class="nc" id="L47">		this.interceptor = auditableInterceptor;</span>
+<span class="nc" id="L48">		this.pointcut = new AuditAnnotationPointcut(excluded);</span>
+<span class="nc" id="L49">	}</span>
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.aop.PointcutAdvisor#getPointcut()
+	 */
+	@Override
+	public Pointcut getPointcut() {
+<span class="nc" id="L58">		return this.pointcut;</span>
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.aop.Advisor#getAdvice()
+	 */
+	@Override
+	public Advice getAdvice() {
+<span class="nc" id="L68">		return this.interceptor;</span>
+	}
+
+	/**
+	 * A matcher that matches:
+	 * &lt;ul&gt;
+	 * &lt;li&gt;A method on a class annotated with {@link Auditable}.&lt;/li&gt;
+	 * &lt;li&gt;A method on a class extending another class annotated with {@link Auditable}.&lt;/li&gt;
+	 * &lt;li&gt;A method on a class implementing an interface annotated with {@link Auditable}.&lt;/li&gt;
+	 * &lt;li&gt;A method implementing a method in a interface annotated with {@link Auditable}.&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * &lt;p&gt;
+	 * &lt;strong&gt;Note:&lt;/strong&gt; this uses springs utils to find the annotation and
+	 * will not be portable outside the spring environment.
+	 * &lt;/p&gt;
+	 */
+	private final class AuditAnnotationPointcut extends StaticMethodMatcherPointcut {
+		
+		/**
+		 * List of canonical classes and methods having {@link Auditable} annotation that will be excluded from being audited.&lt;br&gt;
+		 * Ej: 
+		 * &lt;ul&gt;
+		 * &lt;li&gt;com.foo.Foo.helloFoo&lt;/li&gt;
+		 * &lt;li&gt;com.foo.Bar.doSomething&lt;/li&gt;
+		 * &lt;/ul&gt;
+		 */
+		private final List&lt;String&gt; excludedMethods;
+		
+<span class="nc" id="L96">		public AuditAnnotationPointcut(String... methods) {</span>
+<span class="nc" id="L97">			super();</span>
+<span class="nc" id="L98">			this.excludedMethods = Arrays.asList(methods);</span>
+<span class="nc" id="L99">		}</span>
+		
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.springframework.aop.support.StaticMethodMatcher.matches(Method, Class&lt;?&gt;, Object...)
+		 */
+		@Override
+		public boolean matches(Method method, Class&lt;?&gt; targetClass) {
+<span class="nc bnc" id="L108" title="All 4 branches missed.">			return null != AnnotationUtils.findAnnotation(method, Auditable.class) &amp;&amp; !isExcluded(method, targetClass);</span>
+		}
+		
+		private boolean isExcluded(Method method, Class&lt;?&gt; targetClass) {
+<span class="nc" id="L112">			final String canonicalMethod = (targetClass.getName() + CommonConstants.DOT + method.getName()).toLowerCase();</span>
+<span class="nc" id="L113">			boolean methodMatch = false;</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">			for (String m : excludedMethods) {</span>
+<span class="nc" id="L115">				methodMatch = canonicalMethod.equals(m);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">				if (methodMatch) {</span>
+<span class="nc" id="L117">					break;</span>
+				}
+<span class="nc" id="L119">			}</span>
+<span class="nc" id="L120">			return methodMatch;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

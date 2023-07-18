@@ -1,0 +1,57 @@
+[
+	{
+			"name" : "button.new",
+			"icon" : "plus",
+			"handler" : "onNew",
+			"roles" : [
+				"ROLE_WRITE_MAPPINGS"
+			]
+		},
+{
+			"name" : "button.edit",
+			"icon" : "pencil-alt",
+			"handler" : "onEdit",
+			"roles" : [
+				"ROLE_READ_MAPPINGS"
+			],
+			"rowButton" : true,
+			"enabled": "CONDITION_CHECK",
+			"enabledCondition": "hasNotNullId"
+		},
+{
+			"name" : "button.remove",
+			"icon" : "trash",
+			"handler" : "onDelete",
+			"roles" : [
+				"ROLE_WRITE_MAPPINGS"
+			],
+			"rowButton" : true,
+			"enabled": "CONDITION_CHECK",
+			"enabledCondition": "hasNotNullId"
+		},
+{
+			"name" : "button.validate",
+			"icon" : "tasks",
+			"handler" : "onValidate",
+			"roles" : [
+				"ROLE_READ_MAPPINGS"
+			]
+		},
+		{
+			"name": "button.download.excel",
+			"icon": "file-excel",
+			"handler": "onExport",
+			"roles": ["ROLE_READ_MAPPINGS"]
+		},
+		{
+			"name" : "button.new",
+			"icon" : "plus",
+			"handler" : "onNew",
+			"roles" : [
+				"ROLE_WRITE_MAPPINGS"
+			],
+			"rowButton" : true,
+			"enabled": "CONDITION_CHECK",
+			"enabledCondition": "hasNullId"
+		}
+]

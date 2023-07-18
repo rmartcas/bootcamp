@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CoreConfig.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.model</a> &gt; <span class="el_source">CoreConfig.java</span></div><h1>CoreConfig.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.model;
+
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.nttdata.core.menu.model.Menu;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/**
+ * Config data for application
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Getter
+<span class="nc" id="L25">@Setter</span>
+<span class="pc bpc" id="L26" title="1 of 70 branches missed.">@EqualsAndHashCode</span>
+<span class="nc" id="L27">@NoArgsConstructor</span>
+@JsonInclude(Include.NON_NULL)
+public class CoreConfig {
+	
+	/** 
+	 * Current locale.
+	 * @param locale {@link String} The locale
+	 * @return {@link String} the locale
+	 */
+<span class="fc" id="L36">	private String locale;</span>
+	
+	/** 
+	 * Default locale.
+	 * @param defaultLocale {@link String} The defaultLocale
+	 * @return {@link String} the defaultLocale
+	 */
+<span class="fc" id="L43">	private String defaultLocale;</span>
+	
+	/** 
+	 * List of available locales.
+	 * @param locales {@link List} The locales
+	 * @return {@link List} the locales
+	 */
+<span class="fc" id="L50">	private List&lt;String&gt; locales;</span>
+	
+	/** 
+	 * The current authenticated user.
+	 * @param user {@link CoreUser} The user
+	 * @return {@link CoreUser} the user
+	 */
+<span class="fc" id="L57">	private CoreUser user;</span>
+	
+	/** 
+	 * Map of api endpoints. Filled with all api modules the user has access to.
+	 * @param api {@link Map} The api
+	 * @return {@link Map} the api
+	 */
+<span class="fc" id="L64">	private Map&lt;String, Object&gt; api;</span>
+	
+	/** 
+	 * List of available menus.
+	 * @param menus {@link List} The menus
+	 * @return {@link List} the menus
+	 */
+<span class="fc" id="L71">	private List&lt;Menu&gt; menus;</span>
+	
+	/** 
+	 * The recaptcha config.
+	 * @param recaptcha {@link RecaptchaConfig} The recaptcha config to use
+	 * @return {@link RecaptchaConfig} the recaptcha config to use
+	 */
+<span class="fc" id="L78">	private RecaptchaConfig recaptcha;</span>
+	
+	/** 
+	 * The pagination default settings.
+	 * @param pagination {@link PageConfig} The pagination
+	 * @return {@link PageConfig} the pagination
+	 */
+<span class="fc" id="L85">	private PageConfig pagination;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

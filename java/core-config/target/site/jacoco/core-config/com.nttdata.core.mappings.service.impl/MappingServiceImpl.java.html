@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MappingServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.mappings.service.impl</a> &gt; <span class="el_source">MappingServiceImpl.java</span></div><h1>MappingServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.mappings.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.util.PathMatcher;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.pattern.PathPattern;
+
+import com.nttdata.core.cache.constants.CacheConstants;
+import com.nttdata.core.combos.model.Combo;
+import com.nttdata.core.combos.model.ComboPage;
+import com.nttdata.core.combos.service.ComboService;
+import com.nttdata.core.common.constants.CommonConstants;
+import com.nttdata.core.common.exception.CoreException;
+import com.nttdata.core.common.model.CoreUser;
+import com.nttdata.core.common.model.DataLoad;
+import com.nttdata.core.common.model.Page;
+import com.nttdata.core.crud.mapper.CrudMapper;
+import com.nttdata.core.mappingauthorities.service.MappingAuthorityService;
+import com.nttdata.core.mappings.mapper.MappingMapper;
+import com.nttdata.core.mappings.model.Mapping;
+import com.nttdata.core.mappings.model.MappingDataLoad;
+import com.nttdata.core.mappings.service.MappingService;
+import com.nttdata.core.ui.service.UIService;
+import com.nttdata.core.authorities.model.Authority;
+
+/**
+ * Implementation of mapping service
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Service
+<span class="nc" id="L53">public class MappingServiceImpl implements MappingService {</span>
+	
+	/** The associated mapping mapper */
+	@Autowired
+	private MappingMapper mapper;
+	
+	/** The combo service */
+	@Autowired
+	private ComboService comboService;
+	
+	/** The UI service */
+	@Autowired
+	private UIService uiService;
+	
+	/** Mapping - Authority service for entity association */
+	@Autowired
+	private MappingAuthorityService mappingAuthorityService;
+	
+	/** Handler mapping with all controller mappings */
+	@Autowired
+	@Qualifier(&quot;requestMappingHandlerMapping&quot;)
+	private RequestMappingHandlerMapping handlerMapping;
+	
+	/**
+	 * Return a {@link List}&amp;lt;{@link Mapping}&amp;gt; containing all application security patterns and security access expressions
+	 * @return  {@link List}&amp;lt;{@link Mapping}&amp;gt; with all application mappings and their security expression to access
+	 * @throws CoreException if error
+	 */
+	@Override
+	public List&lt;Mapping&gt; getApiMappings() throws CoreException {
+<span class="nc" id="L83">        return getApiMappings(false);</span>
+	}
+	
+    /**
+     * Return a {@link List}&amp;lt;{@link Mapping}&amp;gt; containing all application security patterns and security access expressions
+     * @param addRolePrefix {@link Boolean} when true, all authorities in the mapping list will be returned with &quot;ROLE_&quot; prefix plus authority name.
+     * @return  {@link List}&amp;lt;{@link Mapping}&amp;gt; with all application mappings and their security expression to access
+     * @throws CoreException if error
+     */
+    @Override
+    @Cacheable(value = CacheConstants.CORE_CACHE, key = &quot;'api-mappings'.concat(#addRolePrefix)&quot;)
+    public List&lt;Mapping&gt; getApiMappings(boolean addRolePrefix) throws CoreException {
+<span class="nc" id="L95">        List&lt;Mapping&gt; mappings = mapper.getApiMappings();</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (addRolePrefix) {</span>
+<span class="nc" id="L97">            mappings = mappings.stream().map(s-&gt; {</span>
+<span class="nc" id="L98">                s.getAuthorities().forEach(a -&gt; a.setName(&quot;ROLE_&quot; + a.getName()));</span>
+<span class="nc" id="L99">                return s;</span>
+<span class="nc" id="L100">            }).collect(Collectors.toList());</span>
+        }
+<span class="nc" id="L102">        return mappings;</span>
+    }
+	
+	/**
+	 * Return a {@link List}&amp;lt;{@link String}&amp;gt; containing all authorized mapping patterns
+	 * allowed by the user profile.
+	 *
+	 * @param user {@link CoreUser} the current authenticated user
+	 * @return {@link List}&amp;lt;{@link String}&amp;gt; with all accesible endpoints by the user
+	 * @throws CoreException if any error ocurrs during method call
+	 */
+	@Override
+	@Cacheable(value = CacheConstants.CORE_CACHE, key = &quot;'mappings'.concat(#user.profileId)&quot;)
+	public List&lt;String&gt; getUserMappings(CoreUser user) throws CoreException {
+<span class="nc" id="L116">		return mapper.getUserMappings(user.getProfileId());</span>
+	}
+	
+	@Override
+	public CrudMapper&lt;Mapping&gt; getMapper() {
+<span class="nc" id="L121">		return this.mapper;</span>
+	}
+	
+	@Override
+	public DataLoad init(Page&lt;Mapping&gt; dto) {
+<span class="nc" id="L126">		MappingDataLoad data = new MappingDataLoad();</span>
+<span class="nc" id="L127">		data.setAuthorities(getAuthorities());</span>
+<span class="nc" id="L128">		data.setButtons(uiService.getButtons(&quot;mappings.init&quot;));</span>
+<span class="nc" id="L129">		data.setColumns(uiService.getColumns(&quot;mappings.init&quot;));</span>
+<span class="nc" id="L130">		return data;</span>
+	}
+	
+	@Override
+	public DataLoad init(Mapping dto) {
+<span class="nc" id="L135">		MappingDataLoad data = new MappingDataLoad();</span>
+<span class="nc" id="L136">		data.setAuthorities(getAuthorities());</span>
+<span class="nc" id="L137">		data.setMappings(getPathMappings());</span>
+<span class="nc" id="L138">		data.setButtons(uiService.getButtons(&quot;mappings.initedit&quot;));</span>
+<span class="nc" id="L139">        return data;</span>
+	}
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void insert(Mapping dto) {
+<span class="nc" id="L145">		MappingService.super.insert(dto);</span>
+		
+		// Insert all associated authorities with the new mapping
+<span class="nc" id="L148">		mappingAuthorityService.insertAuthorities(dto);</span>
+<span class="nc" id="L149">	}</span>
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void update(Mapping dto) {
+<span class="nc" id="L154">		MappingService.super.update(dto);</span>
+		
+		// Delete all associated authorities
+<span class="nc" id="L157">		mappingAuthorityService.deleteAuthorities(dto);</span>
+		// Re Insert all associated authorities with the updated mapping
+<span class="nc" id="L159">		mappingAuthorityService.insertAuthorities(dto);</span>
+<span class="nc" id="L160">	}</span>
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void delete(Mapping dto) {
+		// Delete all associated authorities
+<span class="nc" id="L166">		mappingAuthorityService.deleteAuthorities(dto);</span>
+		
+<span class="nc" id="L168">		MappingService.super.delete(dto);</span>
+<span class="nc" id="L169">	}</span>
+	
+	@Override
+	public Page&lt;Mapping&gt; search(Page&lt;Mapping&gt; dto) throws CoreException {
+<span class="nc" id="L173">		Page&lt;Mapping&gt; page = MappingService.super.search(dto);</span>
+<span class="nc" id="L174">		computeAbsentMappings(page);</span>
+<span class="nc" id="L175">		return page;</span>
+	}
+	
+	private void computeAbsentMappings(Page&lt;Mapping&gt; page) {
+<span class="nc" id="L179">    	Set&lt;String&gt; tree = getTreePathMappings();</span>
+    	
+<span class="nc bnc" id="L181" title="All 2 branches missed.">    	for (String path : tree) {</span>
+<span class="nc" id="L182">			Mapping m = page.getRecords().stream().filter(mapping -&gt; mapping.getPattern().equalsIgnoreCase(path))</span>
+<span class="nc" id="L183">			.findFirst().orElse(null);</span>
+			
+<span class="nc bnc" id="L185" title="All 2 branches missed.">			if (null == m) {</span>
+<span class="nc" id="L186">				m = new Mapping();</span>
+<span class="nc" id="L187">				m.setPattern(path);</span>
+<span class="nc" id="L188">				page.getRecords().add(m);</span>
+			}
+<span class="nc" id="L190">		}</span>
+<span class="nc" id="L191">    	page.setTotalRecords(page.getRecords().size());</span>
+<span class="nc" id="L192">	}</span>
+	
+	private List&lt;Combo&gt; getAuthorities() {
+<span class="nc" id="L195">		ComboPage combo = new ComboPage();</span>
+<span class="nc" id="L196">		combo.setTable(&quot;core_authorities&quot;);</span>
+<span class="nc" id="L197">		combo.setKey(&quot;authority_id&quot;);</span>
+<span class="nc" id="L198">		combo.setValue(&quot;name&quot;);</span>
+<span class="nc" id="L199">		return comboService.search(combo);</span>
+	}
+	
+    private List&lt;Combo&gt; getPathMappings() {
+<span class="nc" id="L203">    	Set&lt;String&gt; tree = getTreePathMappings();</span>
+        
+<span class="nc" id="L205">        List&lt;Combo&gt; paths = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        for (String string : tree) {</span>
+<span class="nc" id="L207">            Combo c = new Combo();</span>
+<span class="nc" id="L208">            c.setId(string);</span>
+<span class="nc" id="L209">            c.setName(string);</span>
+<span class="nc" id="L210">            paths.add(c);</span>
+<span class="nc" id="L211">        }</span>
+<span class="nc" id="L212">        return paths;</span>
+    }
+    
+    private Set&lt;String&gt; getTreePathMappings() {
+<span class="nc" id="L216">		Set&lt;Entry&lt;RequestMappingInfo, HandlerMethod&gt;&gt; entrySet = handlerMapping.getHandlerMethods().entrySet();</span>
+<span class="nc" id="L217">        Set&lt;String&gt; tree = new TreeSet&lt;&gt;();</span>
+<span class="nc" id="L218">        tree.add(CommonConstants.FORWARD_SLASH);</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        for (Entry&lt;RequestMappingInfo, HandlerMethod&gt; entry : entrySet) {</span>
+<span class="nc" id="L220">            PathPatternsRequestCondition patternsCondition = entry.getKey().getPathPatternsCondition();</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        	if (null != patternsCondition) {</span>
+<span class="nc" id="L222">                Set&lt;PathPattern&gt; patterns = patternsCondition.getPatterns();</span>
+<span class="nc" id="L223">        		addMappingPaths(tree, patterns);</span>
+        	}
+<span class="nc" id="L225">        }</span>
+<span class="nc" id="L226">		return tree;</span>
+	}
+    
+    private void addMappingPaths(Set&lt;String&gt; tree, Set&lt;PathPattern&gt; patterns) {
+<span class="nc bnc" id="L230" title="All 2 branches missed.">		for (PathPattern path : patterns) {</span>
+<span class="nc" id="L231">			int start = 0;</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">			for (int end; (end = path.getPatternString().indexOf(CommonConstants.FORWARD_SLASH, start)) != -1; start = end + 1) {</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">		    	if (!CommonConstants.EMPTY_STRING.equalsIgnoreCase(path.getPatternString().substring(0, end))) {</span>
+<span class="nc" id="L234">		    		tree.add(path.getPatternString().substring(0, end) + CommonConstants.FORWARD_SLASH + &quot;**&quot;);</span>
+		    	}
+		    }
+<span class="nc" id="L237">			tree.add(path.getPatternString());</span>
+<span class="nc" id="L238">		}</span>
+<span class="nc" id="L239">	}</span>
+    
+    @Override
+    public Map&lt;String, List&lt;String&gt;&gt; validateMappings() throws CoreException {
+<span class="nc" id="L243">        Set&lt;String&gt; tree = getTreePathMappings();</span>
+<span class="nc" id="L244">        Map&lt;String, List&lt;String&gt;&gt; report = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L245">        Map&lt;String, Set&lt;Long&gt;&gt; pathAuth = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L246">        PathMatcher pathMatcher = handlerMapping.getPathMatcher();</span>
+<span class="nc" id="L247">        List&lt;Mapping&gt; apiMappings = getApiMappings();</span>
+        
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        for (Mapping mapping : apiMappings) {</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">            for (String path : tree) {</span>
+<span class="nc" id="L251">            	pathAuth.computeIfAbsent(path, p -&gt; new HashSet&lt;&gt;());</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">                if (pathMatcher.match(mapping.getPattern(), path.replace(&quot;/**&quot;, &quot;&quot;))) {</span>
+<span class="nc" id="L253">                    pathAuth.get(path).addAll(mapping.getAuthorities().stream().map(Authority::getId).collect(Collectors.toSet()));</span>
+                }
+<span class="nc" id="L255">            }</span>
+<span class="nc" id="L256">        }</span>
+        
+<span class="nc" id="L258">        pathAuth.forEach((k,v) -&gt; {</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">            if (v.isEmpty()) {</span>
+<span class="nc" id="L260">                report.put(k, new ArrayList&lt;&gt;());</span>
+            } else {
+<span class="nc" id="L262">                report.put(k, this.mapper.getProfilesByAuthorities(v));    </span>
+            }
+<span class="nc" id="L264">        });</span>
+<span class="nc" id="L265">        return report;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

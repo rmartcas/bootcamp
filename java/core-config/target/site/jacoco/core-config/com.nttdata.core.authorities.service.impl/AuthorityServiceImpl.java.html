@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuthorityServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.authorities.service.impl</a> &gt; <span class="el_source">AuthorityServiceImpl.java</span></div><h1>AuthorityServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.authorities.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import com.nttdata.core.cache.constants.CacheConstants;
+import com.nttdata.core.combos.model.ComboPage;
+import com.nttdata.core.combos.service.ComboService;
+import com.nttdata.core.common.model.DataLoad;
+import com.nttdata.core.common.model.Page;
+import com.nttdata.core.context.ApplicationEventPublisherHolder;
+import com.nttdata.core.crud.mapper.CrudMapper;
+import com.nttdata.core.security.events.RoleManagementAdminTaskEvent;
+import com.nttdata.core.security.events.RoleManagementAdminTaskEvent.ActionType;
+import com.nttdata.core.ui.service.UIService;
+import com.nttdata.core.authorities.mapper.AuthorityMapper;
+import com.nttdata.core.authorities.model.Authority;
+import com.nttdata.core.authorities.model.AuthorityDataLoad;
+import com.nttdata.core.authorities.service.AuthorityService;
+import com.nttdata.core.profileauthorities.service.ProfileAuthorityService;
+
+
+/**
+ * Authority service implementation to handle authorities
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Service
+<span class="nc" id="L34">public class AuthorityServiceImpl implements AuthorityService {</span>
+
+	/** The associated mapper */
+	@Autowired
+	private AuthorityMapper authorityMapper;
+	
+	/** Profile - Authority service for entity association */
+	@Autowired
+	private ProfileAuthorityService profileAuthorityService;
+	
+	/** The combo service */
+	@Autowired
+	private ComboService comboService;
+	
+	/** The UI service */
+	@Autowired
+	private UIService uiService;
+	
+	@Override
+	public CrudMapper&lt;Authority&gt; getMapper() {
+<span class="nc" id="L54">		return authorityMapper;</span>
+	}
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void insert(Authority dto) {
+		// Insert the new authority
+<span class="nc" id="L61">		AuthorityService.super.insert(dto);</span>
+		
+		// Insert all associated profiles with the new authority
+<span class="nc" id="L64">		profileAuthorityService.insertProfiles(dto);</span>
+
+<span class="nc" id="L66">		ApplicationEventPublisherHolder.getEventPublisher().publishEvent(</span>
+<span class="nc" id="L67">				new RoleManagementAdminTaskEvent(dto, dto.getName(), ActionType.CREATE, false));</span>
+<span class="nc" id="L68">	}</span>
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void update(Authority dto) {
+		// Update the authority
+<span class="nc" id="L74">		AuthorityService.super.update(dto);</span>
+
+		// Delete all associated profiles
+<span class="nc" id="L77">		profileAuthorityService.deleteProfiles(dto);</span>
+		// Re Insert all associated profiles with the updated authority
+<span class="nc" id="L79">		profileAuthorityService.insertProfiles(dto);</span>
+		
+<span class="nc" id="L81">		ApplicationEventPublisherHolder.getEventPublisher().publishEvent(</span>
+<span class="nc" id="L82">				new RoleManagementAdminTaskEvent(dto, dto.getName(), ActionType.MODIFY, false));</span>
+<span class="nc" id="L83">	}</span>
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void delete(Authority dto) {
+		// Delete all associated profiles
+<span class="nc" id="L89">		profileAuthorityService.deleteProfiles(dto);</span>
+
+		// Delete the authority
+<span class="nc" id="L92">		AuthorityService.super.delete(dto);</span>
+		
+<span class="nc" id="L94">		ApplicationEventPublisherHolder.getEventPublisher().publishEvent(</span>
+<span class="nc" id="L95">				new RoleManagementAdminTaskEvent(dto, dto.getName(), ActionType.DELETE, false));</span>
+<span class="nc" id="L96">	}</span>
+	
+	@Override
+	public DataLoad init(Page&lt;Authority&gt; dto) {
+<span class="nc" id="L100">		AuthorityDataLoad data = new AuthorityDataLoad();</span>
+<span class="nc" id="L101">		data.setButtons(uiService.getButtons(&quot;authorities.init&quot;));</span>
+<span class="nc" id="L102">		data.setColumns(uiService.getColumns(&quot;authorities.init&quot;));</span>
+<span class="nc" id="L103">		return data; </span>
+	}
+	
+	@Override
+	public DataLoad init(Authority dto) {
+<span class="nc" id="L108">		AuthorityDataLoad data = new AuthorityDataLoad();</span>
+		
+<span class="nc" id="L110">		ComboPage combo = new ComboPage();</span>
+<span class="nc" id="L111">		combo.setTable(&quot;core_profiles&quot;);</span>
+<span class="nc" id="L112">		combo.setKey(&quot;profile_id&quot;);</span>
+<span class="nc" id="L113">		combo.setValue(&quot;name&quot;);</span>
+		
+<span class="nc" id="L115">		data.setProfiles(comboService.search(combo));</span>
+<span class="nc" id="L116">		data.setButtons(uiService.getButtons(&quot;authorities.initedit&quot;));</span>
+<span class="nc" id="L117">		return data; </span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

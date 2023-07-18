@@ -1,0 +1,18 @@
+# Created at 2023-07-18T12:29:59.467
+Java HotSpot(TM) 64-Bit Server VM warning: Ignoring option MaxPermSize; support was removed in 8.0
+
+# Created at 2023-07-18T12:30:01.726
+WARNING: An illegal reflective access operation has occurred
+
+# Created at 2023-07-18T12:30:01.728
+WARNING: Illegal reflective access by nl.jqno.equalsverifier.internal.reflection.FieldModifier (file:/C:/Users/lmartnun/.m2/repository/nl/jqno/equalsverifier/equalsverifier/3.14.1/equalsverifier-3.14.1.jar) to field java.lang.String.value
+
+# Created at 2023-07-18T12:30:01.729
+WARNING: Please consider reporting this to the maintainers of nl.jqno.equalsverifier.internal.reflection.FieldModifier
+
+# Created at 2023-07-18T12:30:01.730
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+
+# Created at 2023-07-18T12:30:01.731
+WARNING: All illegal access operations will be denied in a future release
+

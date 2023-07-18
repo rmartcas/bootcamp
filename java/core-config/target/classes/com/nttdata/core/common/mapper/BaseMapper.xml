@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BASE">
+
+	<!-- Base result map para búsquedas paginadas, todos los resultMap que necesiten paginación deben extender de este -->
+	<resultMap type="com.nttdata.core.common.model.Page" id="baseSearchResultMap">
+    	<id property="totalRecords" column="totalRecords"/>
+    </resultMap>
+	<!--
+		Para la realizacion de busquedas aproximadas (obviando caracteres no standard) se usaran las siguientes SQL
+	 -->
+	<sql id="translate1">
+		TRIM(TRANSLATE(UPPER(
+	</sql>
+	<sql id="translate2_Aproximado">
+		),'ÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÄËÏÖÜÇ','AEIOUAEIOUAOAEIOOAEIOUC')) LIKE
+		'%'|| TRIM(TRANSLATE(UPPER(
+	</sql>
+	<sql id="translate2_Igual">
+		),'ÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÄËÏÖÜÇ','AEIOUAEIOUAOAEIOOAEIOUC')) =
+		TRIM(TRANSLATE(UPPER(
+	</sql>
+	<sql id="translate3_Aproximado">
+		),'ÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÄËÏÖÜÇ','AEIOUAEIOUAOAEIOOAEIOUC'))||'%'
+	</sql>
+	<sql id="translate3_Igual">
+		),'ÁÉÍÓÚÀÈÌÒÙÃÕÂÊÎÔÛÄËÏÖÜÇ','AEIOUAEIOUAOAEIOOAEIOUC'))
+	</sql>
+  
+</mapper>

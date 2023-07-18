@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="com.nttdata.core.combos.mapper.ComboMapper">
+
+	<select id="search" parameterType="com.nttdata.core.combos.model.ComboPage" resultType="com.nttdata.core.combos.model.Combo">
+    	SELECT 
+			${key} AS id,
+			${value} AS name
+		FROM ${table}
+		<if test="joins != null and !joins.isEmpty()">
+			<foreach collection="joins" item="item">
+				<choose>
+					<when test="null != item.originTable">
+						${item.type.getType()} ${item.table} ON ${item.originTable}.${item.originTableJoinColumn} = ${item.table}.${item.joinTableJoinColumn}
+					</when>
+					<otherwise>
+						${item.type.getType()} ${item.table} ON ${table}.${item.originTableJoinColumn} = ${item.table}.${item.joinTableJoinColumn}
+					</otherwise>
+				</choose>
+			</foreach>
+		</if>
+		<if test="criteria != null and !criteria.isEmpty()">
+			<where>
+				<foreach index="index" collection="criteria" separator=" AND " item="item">
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@EQUALS)">
+						${item.field} = #{item.value}
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@EQUALS_IGNORE_CASE)">
+						lower(${item.field}) = lower(#{item.value})
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@NOT_EQUALS)">
+						${item.field} <![CDATA[<>]]> #{item.value}
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@GREATER)">
+						${item.field} <![CDATA[>]]> #{item.value}
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@GREATER_OR_EQUAL)">
+						${item.field} <![CDATA[>=]]> #{item.value}
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@LESS)">
+						${item.field} <![CDATA[<]]> #{item.value}
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@LESS_OR_EQUAL)">
+						${item.field} <![CDATA[<=]]> #{item.value}
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@CONTAINS)">
+						<include refid="BASE.translate1" /> ${item.field} <include refid="BASE.translate2_Aproximado" /> #{item.value} <include refid="BASE.translate3_Aproximado" />
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@IN)">
+						<choose>
+							<when test="item.value != null and item.value instanceof Iterable and !item.value.isEmpty()">
+								${item.field} IN
+								<foreach item="itemIn" collection="item.value" open="(" separator="," close=")">
+		       						#{itemIn}
+		  						</foreach>
+							</when>
+							<otherwise>
+								1=2
+							</otherwise>
+						</choose>
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@NOT_IN)">
+						<choose>
+							<when test="item.value != null and item.value instanceof Iterable and !item.value.isEmpty()">
+								${item.field} NOT IN
+								<foreach item="itemIn" collection="item.value" open="(" separator="," close=")">
+		       						#{itemIn}
+		  						</foreach>
+							</when>
+							<otherwise>
+								1=2
+							</otherwise>
+						</choose>
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@IS_NULL)">
+						${item.field} IS NULL
+					</if>
+					<if test="item.operator.equals(@com.nttdata.core.combos.model.ComboCriteria$CriteriaOperator@IS_NOT_NULL)">
+						${item.field} IS NOT NULL
+					</if>
+		        </foreach>
+			</where>
+		</if>
+		<if test="groupBy != null and !groupBy.isEmpty()">
+			<foreach collection="groupBy" item="item" open="GROUP BY" separator=",">
+				${item}
+			</foreach>
+		</if>
+		ORDER BY ${value}
+    </select>
+</mapper>

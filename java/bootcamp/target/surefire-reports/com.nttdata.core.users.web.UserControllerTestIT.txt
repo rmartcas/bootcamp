@@ -1,0 +1,7 @@
+-------------------------------------------------------------------------------
+Test set: com.nttdata.core.users.web.UserControllerTestIT
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.001 s <<< FAILURE! - in com.nttdata.core.users.web.UserControllerTestIT
+com.nttdata.core.users.web.UserControllerTestIT  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.IllegalStateException: Previous attempts to find a Docker environment failed. Will not retry. Please see logs and check configuration
+

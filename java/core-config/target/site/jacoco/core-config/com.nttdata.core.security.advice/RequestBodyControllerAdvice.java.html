@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RequestBodyControllerAdvice.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.advice</a> &gt; <span class="el_source">RequestBodyControllerAdvice.java</span></div><h1>RequestBodyControllerAdvice.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.advice;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.hdiv.config.HDIVConfig;
+import org.hdiv.exception.HDIVException;
+import org.hdiv.filter.ValidatorError;
+import org.hdiv.logs.Logger;
+import org.hdiv.util.Constants;
+import org.hdiv.util.HDIVErrorCodes;
+import org.hdiv.util.HDIVUtil;
+import org.hdiv.validator.EditableDataValidationResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.MethodParameter;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJacksonInputMessage;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StreamUtils;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.mvc.method.annotation.JsonViewRequestBodyAdvice;
+import org.springframework.web.util.HtmlUtils;
+
+import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+
+import com.nttdata.core.common.exception.BadRequestException;
+import com.nttdata.core.common.exception.WrapperRuntimeException;
+import com.nttdata.core.common.utils.ValidatorUtils;
+import com.nttdata.core.i18n.constants.I18nConstants;
+
+import lombok.extern.slf4j.Slf4j;
+														  
+/**
+ * Validate all parameters inside body of a request agains hdiv rules
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ *
+ */
+@ControllerAdvice(annotations = {RestController.class, Controller.class})
+@Order(Ordered.HIGHEST_PRECEDENCE - 1)
+<span class="nc" id="L67">@Slf4j</span>
+<span class="nc" id="L68">public class RequestBodyControllerAdvice extends JsonViewRequestBodyAdvice {</span>
+	
+	/** Logger to print the possible attacks detected by HDIV */
+	@Autowired
+	private Logger hdivSecurityLog;
+	
+	/** HDIV configuration object. */
+	@Autowired
+	private HDIVConfig hdivConfig;	
+ 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.web.servlet.mvc.method.annotation.
+	 * JsonViewRequestBodyAdvice
+	 * #supports(org.springframework.core.MethodParameter,
+	 * java.lang.reflect.Type, java.lang.Class)
+	 */
+	@Override
+	public boolean supports(MethodParameter methodParameter, Type targetType,
+			Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType) {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">		return null != methodParameter.getParameterAnnotation(RequestBody.class)</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">				|| null != methodParameter.getParameterAnnotation(RequestPart.class);</span>
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.web.servlet.mvc.method.annotation.
+	 * JsonViewRequestBodyAdvice
+	 * #beforeBodyRead(org.springframework.http.HttpInputMessage,
+	 * org.springframework.core.MethodParameter, java.lang.reflect.Type,
+	 * java.lang.Class)
+	 */
+	@Override
+	public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage,
+			MethodParameter methodParameter, Type targetType,
+			Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType)
+			throws IOException {
+		
+<span class="nc" id="L108">		byte[] byteArray = validateRequest(inputMessage, methodParameter.getParameterType().getSimpleName());</span>
+		
+<span class="nc" id="L110">		InputStream body = new ByteArrayInputStream(byteArray);</span>
+<span class="nc" id="L111">		JsonView annotation = methodParameter.getParameterAnnotation(JsonView.class);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">		if (null != annotation) {</span>
+<span class="nc" id="L113">			Class&lt;?&gt;[] classes = annotation.value();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">			if (classes.length != 1) {</span>
+<span class="nc" id="L115">				throw new IllegalArgumentException(</span>
+						&quot;@JsonView only supported for request body advice with exactly 1 class argument: &quot; 
+				+ methodParameter);
+			}
+<span class="nc" id="L119">			return new MappingJacksonInputMessage(body, inputMessage.getHeaders(), classes[0]);</span>
+		} else {
+<span class="nc" id="L121">			return new MappingJacksonInputMessage(body, inputMessage.getHeaders());</span>
+		}
+	}
+
+	/**
+	 * Validate request against Hdiv validation rules
+	 * @param inputMessage {@link HttpInputMessage} with body data
+	 * @param modelName {@link String} the model name
+	 * @return byte array of request body data.
+	 * @throws Exception if error
+	 */
+	private byte[] validateRequest(HttpInputMessage inputMessage, String modelName)
+			throws IOException {
+<span class="nc" id="L134">		ObjectMapper objectMapper = new ObjectMapper();</span>
+<span class="nc" id="L135">		MapType type = objectMapper.getTypeFactory().constructMapType(</span>
+				Map.class, String.class, Object.class);
+
+<span class="nc" id="L138">		byte[] byteArray = getBodyByteArray(inputMessage);</span>
+		
+<span class="nc" id="L140">		Map&lt;String, Object&gt; data = objectMapper.readValue(byteArray, type);</span>
+
+<span class="nc" id="L142">		Map&lt;String, String[]&gt; unauthorizedParameters = new HashMap&lt;&gt;();</span>
+		
+<span class="nc" id="L144">		validateRequestBody(StringUtils.EMPTY, data, unauthorizedParameters);</span>
+
+<span class="nc bnc" id="L146" title="All 2 branches missed.">		if (!unauthorizedParameters.isEmpty()) {</span>
+			try {
+<span class="nc" id="L148">				createErrorMessages(unauthorizedParameters, modelName);</span>
+<span class="nc" id="L149">			} catch (BadRequestException e) {</span>
+<span class="nc" id="L150">				throw new WrapperRuntimeException(e);</span>
+<span class="nc" id="L151">			}</span>
+		}
+<span class="nc" id="L153">		return byteArray;</span>
+	}
+
+	/**
+	 * Get the request body from {@link HttpInputMessage}
+	 * @param inputMessage {@link HttpInputMessage}
+	 * @return byte array of request body data.
+	 * @throws IOException if error
+	 */
+	private byte[] getBodyByteArray(HttpInputMessage inputMessage)
+			throws IOException {
+<span class="nc" id="L164">		return StreamUtils.copyToByteArray(inputMessage.getBody());</span>
+	}
+
+ 
+	/**
+	 * Validate the request body.
+	 * @param field {@link String} the field to validate.
+	 * @param data {@link Map}&amp;lt;{@link String}, {@link Object}&amp;gt; the request body
+	 * @param unauthorizedParameters {@link Map}&amp;lt;{@link String}, {@link String}[]&amp;gt; invalid parameters
+	 */
+	private void validateRequestBody(String field, Map&lt;String, Object&gt; data, 
+			Map&lt;String, String[]&gt; unauthorizedParameters) {
+<span class="nc bnc" id="L176" title="All 2 branches missed.">		for (Map.Entry&lt;String, Object&gt; entry : data.entrySet()) {</span>
+<span class="nc" id="L177">			String currentField = StringUtils.removeStart(</span>
+<span class="nc" id="L178">					StringUtils.join(new String[]{field, entry.getKey()}, &quot;.&quot;), &quot;.&quot;);</span>
+<span class="nc" id="L179">			Object value = entry.getValue();</span>
+<span class="nc" id="L180">			validateField(unauthorizedParameters, currentField, value);</span>
+<span class="nc" id="L181">		}</span>
+<span class="nc" id="L182">	}</span>
+
+ 
+	/**
+	 * Validate a single field
+	 * @param unauthorizedParameters {@link Map}&amp;lt;{@link String}, {@link String}[]&amp;gt; invalid parameters
+	 * @param currentField {@link} the field to validate
+	 * @param value {@link Object} the value of the field
+	 */
+	@SuppressWarnings({ &quot;rawtypes&quot;, &quot;unchecked&quot; })
+	private void validateField(Map&lt;String, String[]&gt; unauthorizedParameters,
+			String currentField, Object value) {
+<span class="nc bnc" id="L194" title="All 2 branches missed.">		if (value instanceof Map) {</span>
+<span class="nc" id="L195">			validateRequestBody(currentField, (Map) value, unauthorizedParameters);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">		} else if(value instanceof List) {</span>
+<span class="nc" id="L197">			List valueList = (List) value;</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">			for (Object object : valueList) {</span>
+<span class="nc" id="L199">				validateField(unauthorizedParameters, currentField, object);</span>
+<span class="nc" id="L200">			}</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">		} else if (null != value) {</span>
+<span class="nc" id="L202">			validateEditableParameter(currentField, new String[]{ value.toString() }, &quot;text&quot;, unauthorizedParameters);</span>
+		}
+<span class="nc" id="L204">	}</span>
+	
+ 
+	/**
+	 * Validate a single parameter.
+	 * 
+	 * @param parameter
+	 *            parameter name
+	 * @param values
+	 *            parameter's values
+	 * @param dataType
+	 *            editable data type
+	 * @param unauthorizedParameters
+	 *            Unauthorized editable parameters
+	 * @since HDIV 1.1
+	 */
+	private void validateEditableParameter(String parameter,
+			String[] values, String dataType, Map&lt;String, String[]&gt; unauthorizedParameters) {
+
+<span class="nc" id="L223">		ServletRequestAttributes sra = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();</span>
+<span class="nc" id="L224">		String target = this.getTarget(sra);</span>
+		
+<span class="nc bnc" id="L226" title="All 2 branches missed.">		if (hdivConfig.isParameterWithoutValidation(target, parameter)) {</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L228">				log.debug(&quot;parameter &quot; + parameter + &quot; doesn't need validation. It is user defined parameter.&quot;);</span>
+			}
+<span class="nc" id="L230">			return;</span>
+		}
+		
+<span class="nc" id="L233">		EditableDataValidationResult result = hdivConfig.getEditableDataValidationProvider()</span>
+<span class="nc" id="L234">				.validate(target, parameter, values, dataType);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">		if (!result.isValid()) {</span>
+<span class="nc" id="L236">			StringBuilder unauthorizedValues = new StringBuilder(values[0]);</span>
+
+<span class="nc bnc" id="L238" title="All 2 branches missed.">			for (int i = 1; i &lt; values.length; i++) {</span>
+<span class="nc" id="L239">				unauthorizedValues.append(&quot;,&quot; + values[i]);</span>
+			}
+
+<span class="nc bnc" id="L242" title="All 2 branches missed.">			if (&quot;password&quot;.equals(dataType)) {</span>
+<span class="nc" id="L243">				String[] passwordError = { Constants.HDIV_EDITABLE_PASSWORD_ERROR_KEY };</span>
+<span class="nc" id="L244">				unauthorizedParameters.put(parameter, passwordError);</span>
+<span class="nc" id="L245">			} else {</span>
+<span class="nc" id="L246">				unauthorizedParameters.put(parameter, values);</span>
+			}
+			
+<span class="nc" id="L249">			ValidatorError error = new ValidatorError(HDIVErrorCodes.INVALID_EDITABLE_VALUE, target, parameter,</span>
+<span class="nc" id="L250">					unauthorizedValues.toString(), null, result.getValidationId());</span>
+
+<span class="nc" id="L252">			hdivSecurityLog.log(error);																	</span>
+		}
+<span class="nc" id="L254">	}</span>
+	
+	/**
+	 * Gets the part of the url that represents the action to be executed in this request.
+	 * 
+	 * @param sra
+	 *            HttpServletRequest to validate
+	 * @return target {@link String} Part of the url that represents the target action
+	 */
+	protected String getTarget(ServletRequestAttributes sra) {
+<span class="nc" id="L264">		HttpServletRequest request = null;</span>
+		try {
+<span class="nc" id="L266">			request = sra.getRequest();</span>
+<span class="nc" id="L267">			String requestUri = request.getRequestURI();</span>
+<span class="nc" id="L268">			requestUri = HDIVUtil.stripSession(requestUri).substring(request.getContextPath().length());</span>
+<span class="nc" id="L269">			return URLDecoder.decode(requestUri, Constants.ENCODING_UTF_8);</span>
+<span class="nc" id="L270">		} catch (Exception e) {</span>
+<span class="nc" id="L271">			String errorMessage = HDIVUtil.getMessage(request, &quot;helper.actionName&quot;);</span>
+<span class="nc" id="L272">			throw new HDIVException(errorMessage, e);</span>
+		}
+	}
+	
+	/**
+	 * Create the error messages and throw the {@link BadRequestException}.
+	 * @param unauthorizedParameters {@link Map}&lt;{@link String}, {@link String}[]&gt; invalid parameters
+	 * @param modelName {@link String} the model name
+	 * @throws BadRequestException if any invalid parameter
+	 */
+	private void createErrorMessages(final Map&lt;String, String[]&gt; unauthorizedParameters, 
+			String modelName) throws BadRequestException {
+		
+<span class="nc" id="L285">		List&lt;String&gt; fields = this.getInvalidHdivFields(unauthorizedParameters);</span>
+		
+<span class="nc" id="L287">		Errors errors = null;</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">		if (modelName != null) {</span>
+<span class="nc" id="L289">			String objectName = Character.toLowerCase(modelName.charAt(0)) + modelName.substring(1);</span>
+<span class="nc" id="L290">			errors = new BeanPropertyBindingResult(null, objectName);</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">			for (String field : fields) {</span>
+<span class="nc" id="L292">				errors.rejectValue(null, I18nConstants.I18N_VALIDATION_FIELD_INVALID,</span>
+<span class="nc" id="L293">						new Object[] {HtmlUtils.htmlEscape(ValidatorUtils.getFullFieldName(errors, field))}, null);</span>
+<span class="nc" id="L294">			}</span>
+		}
+		
+<span class="nc" id="L297">		throw new BadRequestException(errors);</span>
+	}	
+	
+	/**
+	 * For the current request get all invalid parameters for HDIV
+	 * @param unauthorizedParameters The parameters that raise the error.
+	 * @return List de String con los nobmres de campos
+	 */
+	private List&lt;String&gt; getInvalidHdivFields(final Map&lt;String, String[]&gt; unauthorizedParameters) {
+		
+<span class="nc bnc" id="L307" title="All 4 branches missed.">		if ((unauthorizedParameters == null) || unauthorizedParameters.isEmpty()) {</span>
+<span class="nc" id="L308">			return Collections.emptyList();</span>
+		}
+		
+<span class="nc" id="L311">		return new ArrayList&lt;&gt;(unauthorizedParameters.keySet());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

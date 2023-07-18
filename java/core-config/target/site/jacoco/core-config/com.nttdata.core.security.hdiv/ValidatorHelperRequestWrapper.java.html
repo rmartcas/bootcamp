@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ValidatorHelperRequestWrapper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.hdiv</a> &gt; <span class="el_source">ValidatorHelperRequestWrapper.java</span></div><h1>ValidatorHelperRequestWrapper.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.hdiv;
+
+import org.hdiv.context.RequestContextHolder;
+import org.hdiv.filter.ValidationContext;
+import org.hdiv.filter.ValidatorError;
+import org.hdiv.filter.ValidatorHelperRequest;
+import org.hdiv.filter.ValidatorHelperResult;
+import org.hdiv.state.IState;
+import org.hdiv.state.State;
+import org.hdiv.util.HDIVErrorCodes;
+import org.hdiv.util.Method;
+import org.springframework.web.util.HtmlUtils;
+import org.springframework.web.util.UriTemplate;
+
+import com.nttdata.core.security.utils.SecurityUtils;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Custom Validator Helper Request that allows extra security validations
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L28">@Slf4j</span>
+public class ValidatorHelperRequestWrapper extends ValidatorHelperRequest {
+		
+	public ValidatorHelperRequestWrapper() {
+<span class="nc" id="L32">		super();</span>
+<span class="nc" id="L33">	}</span>
+	
+	/**
+	 * Initialize the new {@link ValidatorHelperRequestWrapper} with the same data as
+	 * the received {@link ValidatorHelperRequest}
+	 * @param r {@link ValidatorHelperRequest}
+	 */
+<span class="nc" id="L40">	public ValidatorHelperRequestWrapper(ValidatorHelperRequest r) {</span>
+<span class="nc" id="L41">		this.setStateUtil(SecurityUtils.getFieldValue(r, &quot;stateUtil&quot;));</span>
+<span class="nc" id="L42">		this.setHdivConfig(SecurityUtils.getFieldValue(r, &quot;hdivConfig&quot;));</span>
+<span class="nc" id="L43">		this.setSession(SecurityUtils.getFieldValue(r, &quot;session&quot;));</span>
+<span class="nc" id="L44">		this.setDataValidator(SecurityUtils.getFieldValue(r, &quot;dataValidator&quot;));</span>
+<span class="nc" id="L45">		this.setUrlProcessor(SecurityUtils.getFieldValue(r, &quot;urlProcessor&quot;));</span>
+<span class="nc" id="L46">		this.setDataComposerFactory(SecurityUtils.getFieldValue(r, &quot;dataComposerFactory&quot;));</span>
+<span class="nc" id="L47">		this.setStateScopeManager(SecurityUtils.getFieldValue(r, &quot;stateScopeManager&quot;));</span>
+<span class="nc" id="L48">		this.init();</span>
+<span class="nc" id="L49">	}</span>
+	
+	@Override
+	public ValidatorHelperResult validate(ValidationContext context) {
+<span class="nc" id="L53">		ValidatorHelperResult result = super.validate(context);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (!result.isValid()) {</span>
+<span class="nc" id="L55">			return result;</span>
+		}
+<span class="nc" id="L57">		ValidatorHelperResult state = this.restoreState(context);</span>
+<span class="nc" id="L58">		return this.isTheSameMethod(context.getMethod(), state.getValue());</span>
+	}
+	
+	/**
+	 * Checks if the method received in the request is the same as the one stored in the HDIV state.
+	 *
+	 * @param method {@link Method} the request method
+	 * @param state {@link IState} The restored state for this url
+	 * @return valid result if the methods are the same. False otherwise.
+	 */
+	protected ValidatorHelperResult isTheSameMethod(final Method method, IState state) {
+		
+<span class="nc bnc" id="L70" title="All 2 branches missed.">		if (null == state) {</span>
+			//No state, maybe is a validation not required target
+<span class="nc" id="L72">			return ValidatorHelperResult.VALIDATION_NOT_REQUIRED;</span>
+		}
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">		if (state.contains(method)) {</span>
+<span class="nc" id="L76">			return ValidatorHelperResult.VALID;</span>
+		}
+
+<span class="nc bnc" id="L79" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L80">			log.debug(&quot;Validation error in the method. Method in state [&quot; + ((State)state).getMethod() + &quot;], method in the request [&quot; + method + &quot;]&quot;);</span>
+		}
+<span class="nc" id="L82">		ValidatorError error = new ValidatorError(&quot;INVALID_METHOD&quot;, state.getAction());</span>
+<span class="nc" id="L83">		return new ValidatorHelperResult(error);</span>
+	}
+	
+	@Override
+	protected ValidatorHelperResult isTheSameAction(RequestContextHolder context, String target, String stateAction) {
+<span class="nc" id="L88">		stateAction = HtmlUtils.htmlUnescape(stateAction);</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">		if (stateAction.equalsIgnoreCase(target)) {</span>
+<span class="nc" id="L91">			return ValidatorHelperResult.VALID;</span>
+		}
+
+<span class="nc bnc" id="L94" title="All 2 branches missed.">		if (target.endsWith(&quot;/&quot;)) {</span>
+<span class="nc" id="L95">			String actionSlash = stateAction + &quot;/&quot;;</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">			if (actionSlash.equalsIgnoreCase(target)) {</span>
+<span class="nc" id="L97">				return ValidatorHelperResult.VALID;</span>
+			}
+		}
+		
+<span class="nc" id="L101">		UriTemplate uriTemplate = new UriTemplate(stateAction);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">		if (uriTemplate.matches(target)) {</span>
+<span class="nc" id="L103">			return ValidatorHelperResult.VALID;</span>
+		}
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L107">			log.debug(&quot;Validation error in the action. Action in state [&quot; + stateAction + &quot;], action in the request [&quot; + target + &quot;]&quot;);</span>
+		}
+<span class="nc" id="L109">		ValidatorError error = new ValidatorError(HDIVErrorCodes.INVALID_ACTION, target);</span>
+<span class="nc" id="L110">		return new ValidatorHelperResult(error);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

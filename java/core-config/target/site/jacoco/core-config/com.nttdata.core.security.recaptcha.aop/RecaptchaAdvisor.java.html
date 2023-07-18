@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RecaptchaAdvisor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.recaptcha.aop</a> &gt; <span class="el_source">RecaptchaAdvisor.java</span></div><h1>RecaptchaAdvisor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.recaptcha.aop;
+
+import java.lang.reflect.Method;
+
+import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.springframework.aop.Pointcut;
+import org.springframework.aop.support.AbstractPointcutAdvisor;
+import org.springframework.aop.support.StaticMethodMatcherPointcut;
+import org.springframework.core.annotation.AnnotationUtils;
+
+import com.nttdata.core.security.recaptcha.annotation.Recaptcha;
+
+import lombok.EqualsAndHashCode;
+
+/**
+ * Advisor to catch {@link Recaptcha} annotation over interfaces
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc bnc" id="L25" title="All 6 branches missed.">@EqualsAndHashCode(callSuper = false)</span>
+public class RecaptchaAdvisor extends AbstractPointcutAdvisor {
+
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
+	
+	/** The method interceptor */
+	private final transient MethodInterceptor interceptor;
+	
+	/** Recaptcha pointcut */
+<span class="nc" id="L35">	private final transient StaticMethodMatcherPointcut pointcut = new RecaptchaAnnotationPointcut();</span>
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param interceptor {@link RecaptchaInterceptor}
+	 */
+	public RecaptchaAdvisor(RecaptchaInterceptor interceptor) {
+<span class="nc" id="L43">		super();</span>
+<span class="nc" id="L44">		this.interceptor = interceptor;</span>
+<span class="nc" id="L45">	}</span>
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.aop.PointcutAdvisor#getPointcut()
+	 */
+	@Override
+	public Pointcut getPointcut() {
+<span class="nc" id="L54">		return this.pointcut;</span>
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.aop.Advisor#getAdvice()
+	 */
+	@Override
+	public Advice getAdvice() {
+<span class="nc" id="L64">		return this.interceptor;</span>
+	}
+
+	/**
+	 * A matcher that matches:
+	 * &lt;ul&gt;
+	 * &lt;li&gt;A method on a class annotated with {@link Recaptcha}.&lt;/li&gt;
+	 * &lt;li&gt;A method on a class extending another class annotated with {@link Recaptcha}.&lt;/li&gt;
+	 * &lt;li&gt;A method on a class implementing an interface annotated with {@link Recaptcha}.&lt;/li&gt;
+	 * &lt;li&gt;A method implementing a method in a interface annotated with {@link Recaptcha}.&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * &lt;p&gt;
+	 * &lt;strong&gt;Note:&lt;/strong&gt; this uses springs utils to find the annotation and
+	 * will not be portable outside the spring environment.
+	 * &lt;/p&gt;
+	 */
+<span class="nc" id="L80">	private final class RecaptchaAnnotationPointcut extends StaticMethodMatcherPointcut {</span>
+		
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.springframework.aop.support.StaticMethodMatcher.matches(Method, Class&lt;?&gt;, Object...)
+		 */
+		@Override
+		public boolean matches(Method method, Class&lt;?&gt; targetClass) {
+<span class="nc" id="L89">			final Class&lt;Recaptcha&gt; annotationType = Recaptcha.class;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">			return null != AnnotationUtils.findAnnotation(method, annotationType)</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">					|| null != AnnotationUtils.findAnnotation(targetClass, annotationType);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

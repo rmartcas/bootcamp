@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>I18nServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.i18n.service.impl</a> &gt; <span class="el_source">I18nServiceImpl.java</span></div><h1>I18nServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.i18n.service.impl;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
+
+import com.nttdata.core.cache.constants.CacheConstants;
+import com.nttdata.core.common.constants.CommonConstants;
+import com.nttdata.core.i18n.service.I18nService;
+
+/**
+ * Implementation of i18n service
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="fc" id="L32">@Slf4j</span>
+@Service
+<span class="fc" id="L34">public class I18nServiceImpl implements I18nService {</span>
+
+	/** The message source */
+	@Autowired
+	private MessageSource messageSource;
+
+	/**
+	 * Gets the requested message with the current locale
+	 *
+	 * @param msg the message code
+	 * @param args arguments to replace in msg
+	 * @return String translated message
+	 */
+	@Override
+	public String getTranslation(String msg, Object... args) {
+<span class="fc" id="L49">		return getTranslation(msg, LocaleContextHolder.getLocale(), args);</span>
+	}
+	
+	/**
+	 * Gets the requested message with selected locale
+	 *
+	 * @param msg the message code
+	 * @param locale the requested locale to translate
+	 * @param args arguments to replace in msg
+	 * @return String translated message
+	 */
+	@Cacheable(value = CacheConstants.LOCALE_CACHE, key = CacheConstants.CACHE_MSG_LOCALE_KEY)
+	@Override
+	public String getTranslation(String msg, Locale locale, Object... args) {
+		try {
+<span class="fc" id="L64">			return messageSource.getMessage(msg, args, locale);</span>
+<span class="fc" id="L65">		} catch (NoSuchMessageException e) {</span>
+<span class="fc" id="L66">			log.trace(&quot;Message not found.&quot;, e);</span>
+<span class="fc" id="L67">			return CommonConstants.EMPTY_STRING;</span>
+		}
+	}
+	
+	/**
+	 * Create a map with all i18n key and values for requested locale
+	 * 
+	 * @param locale {@link Locale}
+	 * @return {@link Map} of strings with required key values in requested locale  
+	 */
+	@Cacheable(value = CacheConstants.LOCALE_CACHE, key = CacheConstants.CACHE_LOCALE_KEY)
+	@Override
+	public Map&lt;String, String&gt; getI18n(Locale locale) {
+<span class="nc" id="L80">		Map&lt;String, String&gt; i18n = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L81">		Set&lt;String&gt; basenameSet = ((ResourceBundleMessageSource) messageSource).getBasenameSet();</span>
+		
+<span class="nc bnc" id="L83" title="All 2 branches missed.">		for (String basename : basenameSet) {</span>
+<span class="nc" id="L84">			ResourceBundle labels = ResourceBundle.getBundle(basename, locale);</span>
+<span class="nc" id="L85">			Set&lt;String&gt; keySet = labels.keySet();</span>
+			
+<span class="nc bnc" id="L87" title="All 2 branches missed.">			for (String key : keySet) {</span>
+<span class="nc" id="L88">				String value = labels.getString(key);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">				if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L90">					log.trace(&quot;Loading i18n key-value from {} for locale {}: {} = {}&quot;, basename, locale.getLanguage(), key, value);</span>
+				}
+<span class="nc" id="L92">				i18n.put(key, value);</span>
+<span class="nc" id="L93">			}</span>
+<span class="nc" id="L94">		}</span>
+<span class="nc" id="L95">		return i18n;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

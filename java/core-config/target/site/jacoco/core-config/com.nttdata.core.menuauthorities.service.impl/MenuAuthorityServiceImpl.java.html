@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MenuAuthorityServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.menuauthorities.service.impl</a> &gt; <span class="el_source">MenuAuthorityServiceImpl.java</span></div><h1>MenuAuthorityServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.menuauthorities.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.nttdata.core.audit.AuditableActionsEnum;
+import com.nttdata.core.audit.annotation.Auditable;
+import com.nttdata.core.common.utils.BatchUtils;
+import com.nttdata.core.menuauthorities.mapper.MenuAuthorityMapper;
+import com.nttdata.core.menuauthorities.model.MenuAuthority;
+import com.nttdata.core.menuauthorities.service.MenuAuthorityService;
+import com.nttdata.core.menu.model.Menu;
+import com.nttdata.core.authorities.model.Authority;
+
+/**
+ * Implementation of Menu Authority service interface to handle authorities and menu associations
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Service
+<span class="nc" id="L29">public class MenuAuthorityServiceImpl implements MenuAuthorityService {</span>
+	
+	/** The associated mapper */
+	@Autowired
+	private MenuAuthorityMapper mapper;
+	
+	/** The SqlSessionTemplate to perform batch operations */
+	@Autowired
+	private SqlSessionTemplate sqlSessionTemplate;
+	
+	/**
+	 * Inserts a list of authorities associated with the menu
+	 * 
+	 * @param dto the menu
+	 */
+	@Override
+	@Auditable(action = AuditableActionsEnum.INSERT, table = &quot;core_menu_authorities&quot;, primaryKey = &quot;menu_id&quot;)
+	public void insertAuthorities(Menu dto) {
+<span class="nc" id="L47">		List&lt;MenuAuthority&gt; batchList = new ArrayList&lt;&gt;();</span>
+		
+<span class="nc bnc" id="L49" title="All 4 branches missed.">		if (null != dto.getAuthorities() &amp;&amp; !dto.getAuthorities().isEmpty()) {</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">			for (Authority authority : dto.getAuthorities()) {</span>
+<span class="nc" id="L51">				batchList.add(createMenuAuthority(dto, authority));</span>
+<span class="nc" id="L52">			}</span>
+<span class="nc" id="L53">			BatchUtils.execute(sqlSessionTemplate, MenuAuthorityMapper.class.getCanonicalName() + &quot;.insert&quot;, batchList);</span>
+		}
+<span class="nc" id="L55">	}</span>
+
+	
+	/**
+	 * Delete all authorities associated with the menu
+	 * 
+	 * @param dto the menu
+	 */
+	@Override
+	@Auditable(action = AuditableActionsEnum.DELETE, table = &quot;core_menu_authorities&quot;, primaryKey = &quot;menu_id&quot;)
+	public void deleteAuthorities(Menu dto) {
+<span class="nc" id="L66">		MenuAuthority ma = new MenuAuthority();</span>
+<span class="nc" id="L67">		ma.getMenu().setId(dto.getId());</span>
+<span class="nc" id="L68">		mapper.delete(ma);</span>
+<span class="nc" id="L69">	}</span>
+	
+	/**
+	 * Create a new {@link MenuAuthority}
+	 * 
+	 * @param dto the menu
+	 * @param authority the authority
+	 * @return {@link MenuAuthority}
+	 */
+	protected MenuAuthority createMenuAuthority(Menu dto, Authority authority) {
+<span class="nc" id="L79">		MenuAuthority ma = new MenuAuthority();</span>
+<span class="nc" id="L80">		ma.getMenu().setId(dto.getId());</span>
+<span class="nc" id="L81">		ma.getAuthority().setId(authority.getId());</span>
+<span class="nc" id="L82">		return ma;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

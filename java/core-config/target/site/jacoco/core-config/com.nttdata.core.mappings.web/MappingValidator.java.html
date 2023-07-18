@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MappingValidator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.mappings.web</a> &gt; <span class="el_source">MappingValidator.java</span></div><h1>MappingValidator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.mappings.web;
+
+import org.springframework.validation.Errors;
+
+import com.nttdata.core.common.constants.CoreConstants;
+import com.nttdata.core.common.utils.ValidatorUtils;
+import com.nttdata.core.crud.web.CrudValidator;
+import com.nttdata.core.mappings.constants.MappingConstants;
+import com.nttdata.core.mappings.model.Mapping;
+import com.nttdata.core.mappings.model.MappingDataLoad;
+
+/**
+ * Validator for {@link Mapping}
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L21">public class MappingValidator extends CrudValidator {</span>
+
+	@Override
+	public boolean supports(Class&lt;?&gt; clazz) {
+<span class="nc" id="L25">		return Mapping.class.equals(clazz);</span>
+	}
+
+	@Override
+	public void validate(Object target, Errors errors) {		
+		//The initial data loaded
+<span class="nc" id="L31">		MappingDataLoad initialData = (MappingDataLoad) this.getValidationData();</span>
+		
+		// Mandatory fields
+<span class="nc" id="L34">		ValidatorUtils.rejectIfEmpty(errors, MappingConstants.FIELD_PATTERN);</span>
+<span class="nc" id="L35">		ValidatorUtils.rejectIfEmptyCollection(errors, MappingConstants.FIELD_AUTHORITIES);</span>
+		
+		// Max length validations
+<span class="nc" id="L38">		ValidatorUtils.rejectIfLengthExceeded(errors, MappingConstants.FIELD_PATTERN, 250);</span>
+<span class="nc" id="L39">		ValidatorUtils.rejectIfLengthExceeded(errors, MappingConstants.FIELD_POSITION, 2);</span>
+		
+		//Allowed authorities
+<span class="nc" id="L42">		ValidatorUtils.rejectIfCollectionNotContains(errors,</span>
+<span class="nc" id="L43">				MappingConstants.FIELD_AUTHORITIES, null, CoreConstants.FIELD_ID, initialData.getAuthorities());</span>
+        //Allowed mappings
+<span class="nc" id="L45">        ValidatorUtils.rejectIfCollectionNotContains(errors, MappingConstants.FIELD_PATTERN, initialData.getMappings());</span>
+		
+<span class="nc" id="L47">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

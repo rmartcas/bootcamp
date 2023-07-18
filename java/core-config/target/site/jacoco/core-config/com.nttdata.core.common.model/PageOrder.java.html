@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PageOrder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.common.model</a> &gt; <span class="el_source">PageOrder.java</span></div><h1>PageOrder.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.common.model;
+
+import java.io.Serializable;
+
+import org.springframework.data.domain.Sort.Direction;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/**
+ * Page order class used to sort paged queries
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="pc bpc" id="L24" title="1 of 30 branches missed.">@EqualsAndHashCode</span>
+@Getter
+<span class="nc" id="L26">@Setter</span>
+<span class="nc" id="L27">@AllArgsConstructor</span>
+<span class="nc" id="L28">@NoArgsConstructor</span>
+public class PageOrder implements Serializable {
+	
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
+	
+	/** 
+	 * The used property to order.
+	 * @param property {@link String} The property
+	 * @return {@link String} the property
+	 */
+<span class="fc" id="L39">	private String property;</span>
+	
+	/** 
+	 * The sort direction, ASC by default.
+	 * @param order {@link Direction} The order
+	 * @return {@link Direction} the order
+	 */
+<span class="pc" id="L46">	private Direction order = Direction.ASC;</span>
+	
+	/** 
+	 * Parse sort order as string?. Default false.
+	 * @param sortAsString {@link Boolean} The sortAsString
+	 * @return {@link Boolean} the sortAsString
+	 */
+<span class="nc" id="L53">	@JsonIgnore</span>
+<span class="fc" id="L54">	private Boolean sortAsString = Boolean.FALSE;</span>
+	
+	/**
+	 * PageOrder constructor using property parameter
+	 * @param property The property to sort
+	 */
+	public PageOrder(String property) {
+<span class="nc" id="L61">		super();</span>
+<span class="nc" id="L62">		this.property = property;</span>
+<span class="nc" id="L63">	}</span>
+
+	/**
+	 * PageOrder constructor using property and asStrig parameters
+	 * @param property The property to sort
+	 * @param asString If this property is used as string or a column
+	 */
+	public PageOrder(String property, Boolean asString) {
+<span class="nc" id="L71">		super();</span>
+<span class="nc" id="L72">		this.property = property;</span>
+<span class="nc" id="L73">		this.sortAsString = asString;</span>
+<span class="nc" id="L74">	}</span>
+	
+	/**
+	 * PageOrder constructor using property and order parameters
+	 * @param property The property to sort
+	 * @param order The order for this property
+	 */
+	public PageOrder(String property, Direction order) {
+<span class="nc" id="L82">		super();</span>
+<span class="nc" id="L83">		this.property = property;</span>
+<span class="nc" id="L84">		this.order = order;</span>
+<span class="nc" id="L85">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

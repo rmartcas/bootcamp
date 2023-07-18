@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="com.nttdata.core.audit.mapper.AuditableMapper">
+
+    <resultMap id="auditMap" type="com.nttdata.core.audit.model.Audit">
+        <id column="AUDIT_ID" property="id" />
+        <result column="TABLE" property="table" />
+        <result column="AUDIT_ACTION" property="action" />
+        <result column="AUDIT_STEP" property="step" />
+        <result column="AUDIT_USER" property="user" />
+        <result column="AUDIT_DATE" property="created" />
+        <result column="PAIR_KEY" property="pairKey" />
+        <result column="REQUEST_ID" property="requestId" />
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.audit.model.AuditPage" id="auditSearchCriteriaMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="auditMap" />
+    </resultMap>
+
+	<insert id="insert" parameterType="com.nttdata.core.audit.model.Audit">
+        INSERT INTO
+            ${table}${@com.nttdata.core.audit.constants.AuditableConstants@AUD_SUFFIX}
+        SELECT
+			nextval('sq_audit_${table}') AS AUDIT_ID,
+            #{requestId} AS REQUEST_ID,
+            #{pairKey} AS PAIR_KEY,
+            #{action} AS AUDIT_ACTION,
+            #{step} AS AUDIT_STEP,
+            #{user} AS AUDIT_USER,
+            #{created} AS AUDIT_DATE,
+            DATA.*
+		FROM (
+			SELECT
+				<choose>
+					<when test="null != data and null != data.id">
+						#{data.id, javaType=long, jdbcType=NUMERIC}::numeric AS record_id
+					</when>
+					<otherwise>
+						null::numeric AS record_id
+					</otherwise>
+				</choose>
+		) DUAL_TABLE
+		LEFT JOIN ${table} DATA ON DUAL_TABLE.record_id = DATA.${primaryKey}
+	</insert>
+	
+	<select id="findAuditTables" resultType="com.nttdata.core.combos.model.Combo">
+		SELECT
+			ROW_NUMBER () OVER (ORDER BY table_name) as id,
+			replace(upper(table_name), '${@com.nttdata.core.audit.constants.AuditableConstants@AUD_SUFFIX}', '') as name
+		FROM information_schema.tables WHERE upper(table_name) like upper('%${@com.nttdata.core.audit.constants.AuditableConstants@AUD_SUFFIX}')
+	</select>
+	
+	<select id="findByPairKey" parameterType="com.nttdata.core.audit.model.Audit" resultType="java.util.LinkedHashMap">
+		SELECT
+			*
+		FROM
+			${table}${@com.nttdata.core.audit.constants.AuditableConstants@AUD_SUFFIX}
+		WHERE
+			PAIR_KEY = #{pairKey}
+		ORDER BY
+			AUDIT_ID
+	</select>
+	
+	<sql id="searchSQL">
+		    	SELECT
+    		REQUEST_ID, PAIR_KEY, AUDIT_ACTION, AUDIT_STEP,
+    		AUDIT_USER, AUDIT_DATE,
+    	<choose>
+   			<when test="null != filters.table">
+   				#{filters.table} as "table"
+   			</when>
+   			<otherwise>
+				AUDIT_TABLE as "table"
+   			</otherwise>
+   		</choose>
+    	FROM
+	<choose>
+		<when test="null != filters.table">
+			${filters.table}${@com.nttdata.core.audit.constants.AuditableConstants@AUD_SUFFIX}	
+		</when>
+		<otherwise>
+			(select 
+				REQUEST_ID, PAIR_KEY, AUDIT_ACTION, AUDIT_STEP, AUDIT_USER, AUDIT_DATE, AUDIT_TABLE
+			 from
+			 	search_request_id(#{filters.requestId}, '${@com.nttdata.core.audit.constants.AuditableConstants@AUD_SUFFIX}')
+			) TABLE_RECORDS    			
+		</otherwise>
+	</choose>
+    	WHERE
+    		AUDIT_STEP = '${@com.nttdata.core.audit.AuditableStepsEnum@BEFORE}'
+    		<if test="null != filters.action">
+    			AND AUDIT_ACTION = #{filters.action}
+    		</if>
+   			<if test="null != filters.user and !filters.user.isEmpty()">
+    			AND AUDIT_USER = #{filters.user}
+    		</if>
+			<if test="null != filters.created">
+				AND AUDIT_DATE >= #{filters.created}
+	        </if>
+	        <if test="null != filters.requestId and !filters.requestId.isEmpty()">
+    			AND REQUEST_ID = #{filters.requestId}
+    		</if>
+    		<if test="null != filters.pairKey and !filters.pairKey.isEmpty()">
+    			AND PAIR_KEY = #{filters.pairKey}
+    		</if>
+    	GROUP BY
+    		REQUEST_ID, PAIR_KEY, AUDIT_ACTION,
+    		AUDIT_STEP, AUDIT_USER, AUDIT_DATE
+    		<if test="null == filters.table">
+    		, AUDIT_TABLE
+    		</if>
+	</sql>
+	
+	<select id="search" parameterType="com.nttdata.core.audit.model.AuditPage" resultMap="auditSearchCriteriaMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+	<select id="export" parameterType="com.nttdata.core.audit.model.AuditPage" resultMap="auditMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    
+</mapper>

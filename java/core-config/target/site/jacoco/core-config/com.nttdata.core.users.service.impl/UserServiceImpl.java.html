@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UserServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.users.service.impl</a> &gt; <span class="el_source">UserServiceImpl.java</span></div><h1>UserServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.users.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import com.nttdata.core.cache.constants.CacheConstants;
+import com.nttdata.core.combos.model.Combo;
+import com.nttdata.core.combos.model.ComboPage;
+import com.nttdata.core.combos.service.ComboService;
+import com.nttdata.core.common.model.DataLoad;
+import com.nttdata.core.common.model.Page;
+import com.nttdata.core.context.ApplicationEventPublisherHolder;
+import com.nttdata.core.crud.mapper.CrudMapper;
+import com.nttdata.core.security.events.GroupMembershipAdminTaskEvent;
+import com.nttdata.core.security.events.GroupMembershipAdminTaskEvent.ActionType;
+import com.nttdata.core.ui.service.UIService;
+import com.nttdata.core.users.mapper.UserMapper;
+import com.nttdata.core.users.model.User;
+import com.nttdata.core.users.model.UserDataLoad;
+import com.nttdata.core.users.service.UserService;
+
+/**
+ * User service implementation to handle users
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Service
+<span class="nc" id="L35">public class UserServiceImpl implements UserService {</span>
+
+	/** The associated mapper */
+	@Autowired
+	private UserMapper userMapper;
+		
+	/** The combo service */
+	@Autowired
+	private ComboService comboService;
+	
+	/** The UI service */
+	@Autowired
+	private UIService uiService;
+	
+	@Override
+	public CrudMapper&lt;User&gt; getMapper() {
+<span class="nc" id="L51">		return userMapper;</span>
+	}
+
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void update(User dto) {
+<span class="nc" id="L57">		UserService.super.update(dto);</span>
+		
+<span class="nc" id="L59">		ApplicationEventPublisherHolder.getEventPublisher().publishEvent(</span>
+<span class="nc" id="L60">				new GroupMembershipAdminTaskEvent(dto, dto.getUsername(),</span>
+<span class="nc" id="L61">						dto.getProfile().getName(), ActionType.ASSIGN));</span>
+<span class="nc" id="L62">	}</span>
+
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void delete(User dto) {
+<span class="nc" id="L67">		UserService.super.delete(dto);</span>
+<span class="nc" id="L68">	}</span>
+	
+	@Override
+	public DataLoad init(Page&lt;User&gt; dto) {
+<span class="nc" id="L72">		UserDataLoad data = new UserDataLoad();</span>
+<span class="nc" id="L73">		data.setProfiles(getProfiles());</span>
+<span class="nc" id="L74">		data.setButtons(uiService.getButtons(&quot;users.init&quot;));</span>
+<span class="nc" id="L75">		data.setColumns(uiService.getColumns(&quot;users.init&quot;));</span>
+<span class="nc" id="L76">		return data;</span>
+	}
+	
+	@Override
+	public DataLoad init(User dto) {
+<span class="nc" id="L81">		UserDataLoad data = new UserDataLoad();</span>
+<span class="nc" id="L82">		data.setProfiles(getProfiles());</span>
+<span class="nc" id="L83">		data.setButtons(uiService.getButtons(&quot;users.initedit&quot;));</span>
+<span class="nc" id="L84">		return data;</span>
+	}
+	
+	private List&lt;Combo&gt; getProfiles() {
+<span class="nc" id="L88">		ComboPage combo = new ComboPage();</span>
+<span class="nc" id="L89">		combo.setTable(&quot;core_profiles&quot;);</span>
+<span class="nc" id="L90">		combo.setKey(&quot;profile_id&quot;);</span>
+<span class="nc" id="L91">		combo.setValue(&quot;name&quot;);</span>
+<span class="nc" id="L92">		return comboService.search(combo);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

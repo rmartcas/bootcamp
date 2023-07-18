@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Recaptcha.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.recaptcha.model</a> &gt; <span class="el_source">Recaptcha.java</span></div><h1>Recaptcha.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.recaptcha.model;
+
+import java.util.Date;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/**
+ * Recaptcha entity
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Getter
+<span class="pc" id="L22">@Setter</span>
+<span class="pc bpc" id="L23" title="1 of 44 branches missed.">@EqualsAndHashCode</span>
+<span class="fc" id="L24">@NoArgsConstructor</span>
+public class Recaptcha {
+	
+	/** 
+	 * whether this request was a valid reCAPTCHA token for your site.
+	 * @param success {@link Boolean} The success
+	 * @return {@link Boolean} the success
+	 */
+<span class="fc" id="L32">	private boolean success;</span>
+	
+	/** 
+	 * the score for this request (0.0 - 1.0).
+	 * @param score {@link Float} The score
+	 * @return {@link Float} the score
+	 */
+<span class="fc" id="L39">	private float score;</span>
+	
+	/** 
+	 * the action name for this request (important to verify).
+	 * @param action {@link String} The action
+	 * @return {@link String} the action
+	 */
+<span class="fc" id="L46">	private String action;</span>
+	
+	/** 
+	 * timestamp of the challenge load (ISO format yyyy-MM-dd'T'HH:mm:ssZZ).
+	 * @param challengeTs {@link Date} The challengeTs
+	 * @return {@link Date} the challengeTs
+	 */
+	@JsonProperty(&quot;challenge_ts&quot;)
+<span class="fc" id="L54">	private Date challengeTs;</span>
+	
+	/** 
+	 * the hostname of the site where the reCAPTCHA was solved.
+	 * @param hostname {@link String} The hostname
+	 * @return {@link String} the hostname
+	 */
+<span class="fc" id="L61">	private String hostname;</span>
+	
+	/** 
+	 * the error codes in recaptcha validation.
+	 * @param errorCodes {@link List} The errorCodes
+	 * @return {@link List} the errorCodes
+	 */
+	@JsonProperty(&quot;error-codes&quot;)
+<span class="fc" id="L69">	private List&lt;String&gt; errorCodes;  </span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

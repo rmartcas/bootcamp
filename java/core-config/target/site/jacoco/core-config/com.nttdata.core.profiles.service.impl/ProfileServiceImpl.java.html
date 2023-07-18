@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProfileServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.profiles.service.impl</a> &gt; <span class="el_source">ProfileServiceImpl.java</span></div><h1>ProfileServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.profiles.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import com.nttdata.core.cache.constants.CacheConstants;
+import com.nttdata.core.combos.model.ComboPage;
+import com.nttdata.core.combos.service.ComboService;
+import com.nttdata.core.common.model.DataLoad;
+import com.nttdata.core.common.model.Page;
+import com.nttdata.core.context.ApplicationEventPublisherHolder;
+import com.nttdata.core.crud.mapper.CrudMapper;
+import com.nttdata.core.security.events.GroupManagementAdminTaskEvent;
+import com.nttdata.core.security.events.GroupManagementAdminTaskEvent.ActionType;
+import com.nttdata.core.ui.service.UIService;
+import com.nttdata.core.profiles.mapper.ProfileMapper;
+import com.nttdata.core.profiles.model.Profile;
+import com.nttdata.core.profiles.model.ProfileDataLoad;
+import com.nttdata.core.profiles.service.ProfileService;
+import com.nttdata.core.profileauthorities.service.ProfileAuthorityService;
+
+/**
+ * Profile service implementation to handle profiles
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+@Service
+<span class="nc" id="L33">public class ProfileServiceImpl implements ProfileService {</span>
+
+	/** The associated profile mapper */
+	@Autowired
+	private ProfileMapper profileMapper;
+	
+	/** Profile - Authority service for entity association */
+	@Autowired
+	private ProfileAuthorityService profileAuthorityService;
+	
+	/** The combo service */
+	@Autowired
+	private ComboService comboService;
+	
+	/** The UI service */
+	@Autowired
+	private UIService uiService;
+	
+	@Override
+	public CrudMapper&lt;Profile&gt; getMapper() {
+<span class="nc" id="L53">		return profileMapper;</span>
+	}
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void insert(Profile dto) {
+		// Insert the new profile
+<span class="nc" id="L60">		ProfileService.super.insert(dto);</span>
+		
+		// Insert all associated authorities with the new profile
+<span class="nc" id="L63">		profileAuthorityService.insertAuthorities(dto);</span>
+		
+<span class="nc" id="L65">		ApplicationEventPublisherHolder.getEventPublisher().publishEvent(</span>
+<span class="nc" id="L66">				new GroupManagementAdminTaskEvent(dto, dto.getName(), ActionType.CREATE));</span>
+<span class="nc" id="L67">	}</span>
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void update(Profile dto) {
+		// Update the profile
+<span class="nc" id="L73">		ProfileService.super.update(dto);</span>
+		
+		// Delete all associated auhorities
+<span class="nc" id="L76">		profileAuthorityService.deleteAuthorities(dto);</span>
+		// Re Insert all associated authorities with the updated profile
+<span class="nc" id="L78">		profileAuthorityService.insertAuthorities(dto);</span>
+<span class="nc" id="L79">	}</span>
+	
+	@Override
+	@CacheEvict(cacheNames = CacheConstants.CORE_CACHE, allEntries = true)
+	public void delete(Profile dto) {
+		// Delete all associated auhorities
+<span class="nc" id="L85">		profileAuthorityService.deleteAuthorities(dto);</span>
+		
+		// Delete the profile
+<span class="nc" id="L88">		ProfileService.super.delete(dto);</span>
+		
+<span class="nc" id="L90">		ApplicationEventPublisherHolder.getEventPublisher().publishEvent(</span>
+<span class="nc" id="L91">				new GroupManagementAdminTaskEvent(dto, dto.getName(), ActionType.DESTROY));</span>
+<span class="nc" id="L92">	}</span>
+	
+	@Override
+	public DataLoad init(Page&lt;Profile&gt; dto) {
+<span class="nc" id="L96">		ProfileDataLoad data = new ProfileDataLoad();</span>
+<span class="nc" id="L97">		data.setButtons(uiService.getButtons(&quot;profiles.init&quot;));</span>
+<span class="nc" id="L98">		data.setColumns(uiService.getColumns(&quot;profiles.init&quot;));</span>
+<span class="nc" id="L99">		return data;</span>
+	}
+	
+	@Override
+	public DataLoad init(Profile dto) {
+<span class="nc" id="L104">		ProfileDataLoad data = new ProfileDataLoad();</span>
+<span class="nc" id="L105">		ComboPage combo = new ComboPage();</span>
+<span class="nc" id="L106">		combo.setTable(&quot;core_authorities&quot;);</span>
+<span class="nc" id="L107">		combo.setKey(&quot;authority_id&quot;);</span>
+<span class="nc" id="L108">		combo.setValue(&quot;name&quot;);</span>
+		
+<span class="nc" id="L110">		data.setAuthorities(comboService.search(combo));</span>
+<span class="nc" id="L111">		data.setButtons(uiService.getButtons(&quot;profiles.initedit&quot;));</span>
+<span class="nc" id="L112">		return data;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

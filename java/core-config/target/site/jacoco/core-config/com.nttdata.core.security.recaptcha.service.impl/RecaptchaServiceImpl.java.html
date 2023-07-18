@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RecaptchaServiceImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.security.recaptcha.service.impl</a> &gt; <span class="el_source">RecaptchaServiceImpl.java</span></div><h1>RecaptchaServiceImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.security.recaptcha.service.impl;
+
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestOperations;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import com.nttdata.core.common.exception.CoreException;
+import com.nttdata.core.context.ApplicationEventPublisherHolder;
+import com.nttdata.core.context.ConfigProperties;
+import com.nttdata.core.context.ConfigProperties.Security.Recaptcha.RecaptchaAction;
+import com.nttdata.core.security.events.CommunicationEvent;
+import com.nttdata.core.security.recaptcha.exception.InvalidRecaptchaException;
+import com.nttdata.core.security.recaptcha.model.Recaptcha;
+import com.nttdata.core.security.recaptcha.service.RecaptchaService;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Recaptcha service implementation
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="nc" id="L34">@Slf4j</span>
+@Service
+@ConditionalOnProperty(prefix=&quot;config&quot;, name={&quot;security.recaptcha.enabled&quot;}, havingValue=&quot;true&quot;, matchIfMissing = false)
+<span class="nc" id="L37">public class RecaptchaServiceImpl implements RecaptchaService {</span>
+	
+	/** The config properties*/
+	@Autowired
+	private ConfigProperties configProperties;
+	
+	/** The rest template to call verify url */
+	@Autowired
+    private RestOperations restTemplate;
+ 
+	/** Token pattern validation */
+<span class="nc" id="L48">    private static final Pattern RESPONSE_PATTERN = Pattern.compile(&quot;[A-Za-z0-9_-]+&quot;);</span>
+
+	/**
+	 * Validate a {@link Recaptcha} request.
+	 * If the response is not returned by the recaptcha verify url the request is considered valid.
+	 * 
+	 * @param recaptchaToken {@link String} to validate
+	 * @param action {@link String} the action to validate
+	 * @throws CoreException if validation fails
+	 */
+	@Override
+	public void validate(String recaptchaToken, String action) throws CoreException {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">		if(!responseSanityCheck(recaptchaToken)) {</span>
+<span class="nc" id="L61">            throw new InvalidRecaptchaException(&quot;Response contains invalid characters&quot;);</span>
+        }
+		
+<span class="nc" id="L64">		final com.nttdata.core.context.ConfigProperties.Security.Recaptcha recaptchaConfig = configProperties.getSecurity().getRecaptcha();</span>
+		
+<span class="nc" id="L66">		MultiValueMap&lt;String, String&gt; requestMap = new LinkedMultiValueMap&lt;&gt;();</span>
+<span class="nc" id="L67">        requestMap.add(&quot;secret&quot;, recaptchaConfig.getKeySecret());</span>
+<span class="nc" id="L68">        requestMap.add(&quot;response&quot;, recaptchaToken);</span>
+        
+<span class="nc" id="L70">        Recaptcha recaptchaResponse = null;</span>
+        try {
+<span class="nc" id="L72">        	recaptchaResponse = restTemplate.postForObject(recaptchaConfig.getVerifyUrl(), requestMap, Recaptcha.class);</span>
+<span class="nc" id="L73">		} catch (Exception e) {</span>
+<span class="nc" id="L74">			log.error(&quot;Cannot get the reCaptcha response from verify url. Request should be considered as valid.&quot;, e);</span>
+<span class="nc" id="L75">			ApplicationEventPublisherHolder.getEventPublisher().publishEvent(new CommunicationEvent(recaptchaConfig.getVerifyUrl()));</span>
+<span class="nc" id="L76">			return;</span>
+<span class="nc" id="L77">		}</span>
+
+<span class="nc" id="L79">        verifyResponse(recaptchaConfig, recaptchaResponse, action);</span>
+<span class="nc" id="L80">	}</span>
+	
+	/**
+	 * Verify that the token match with a valid pattern
+	 * @param recaptchaToken {@link String} to check
+	 * @return boolean true if is valid pattern
+	 */
+	private boolean responseSanityCheck(String recaptchaToken) {
+<span class="nc bnc" id="L88" title="All 4 branches missed.">        return StringUtils.hasLength(recaptchaToken) &amp;&amp; RESPONSE_PATTERN.matcher(recaptchaToken).matches();</span>
+    }
+	
+	/**
+	 * Validate the response.
+	 * Check if the response action has a custom action setting in &lt;code&gt;recaptchaConfig&lt;/code&gt;.
+	 * &lt;ul&gt;
+	 * &lt;li&gt;If recaptchaResponse is null validation is skiped and is assumed as valid.&lt;/li&gt;
+	 * &lt;li&gt;If recaptchaResponse is not success InvalidRecaptchaException is thrown.&lt;/li&gt;
+	 * &lt;li&gt;If a custom action is defined, is enabled and the score is valid for the response returns true.&lt;/li&gt;
+	 * &lt;li&gt;If a custom action is defined but not is enabled, then validation is skipped and is considered valid returning true.&lt;/li&gt;
+	 * &lt;li&gt;If not custom action is defined, global score is applied to the response.&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * @param recaptchaConfig {@link com.nttdata.core.context.ConfigProperties.Security.Recaptcha} with the validation settings
+	 * @param recaptchaResponse {@link Recaptcha} the response to check
+	 * @return boolean
+	 */
+	private void verifyResponse(com.nttdata.core.context.ConfigProperties.Security.Recaptcha recaptchaConfig,
+			Recaptcha recaptchaResponse, String action) throws CoreException {
+		
+<span class="nc bnc" id="L108" title="All 2 branches missed.">		if (null == recaptchaResponse) {</span>
+<span class="nc" id="L109">			return;</span>
+		}
+		
+<span class="nc bnc" id="L112" title="All 2 branches missed.">		if (!recaptchaResponse.isSuccess()) {</span>
+<span class="nc" id="L113">			throw new InvalidRecaptchaException(&quot;reCaptcha was not successfully validated&quot;);</span>
+		}
+		
+<span class="nc bnc" id="L116" title="All 2 branches missed.">		if (!action.equalsIgnoreCase(recaptchaResponse.getAction())) {</span>
+<span class="nc" id="L117">			throw new InvalidRecaptchaException(&quot;reCaptcha response action does not match the required action&quot;);</span>
+		}
+		
+<span class="nc" id="L120">		verifyScore(recaptchaConfig, recaptchaResponse, action);</span>
+		
+<span class="nc" id="L122">		log.info(&quot;reCaptcha validation success!!&quot;);</span>
+<span class="nc" id="L123">	}</span>
+	
+	private void verifyScore(com.nttdata.core.context.ConfigProperties.Security.Recaptcha recaptchaConfig,
+			Recaptcha recaptchaResponse, String action) throws InvalidRecaptchaException {
+		
+<span class="nc" id="L128">		Map&lt;String, RecaptchaAction&gt; customActions = recaptchaConfig.getActions();</span>
+<span class="nc" id="L129">		float scoreToApply = recaptchaConfig.getScore();</span>
+<span class="nc bnc" id="L130" title="All 4 branches missed.">		if (null != customActions &amp;&amp; customActions.size() &gt; 0) {</span>
+<span class="nc" id="L131">			RecaptchaAction customAction = customActions.get(action);</span>
+<span class="nc bnc" id="L132" title="All 4 branches missed.">			if (null != customAction &amp;&amp; customAction.isEnabled()) {</span>
+<span class="nc" id="L133">				scoreToApply = customAction.getScore();</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">			} else if (null != customAction &amp;&amp; !customAction.isEnabled()) {</span>
+<span class="nc" id="L135">				return;</span>
+			}
+		}
+		
+<span class="nc bnc" id="L139" title="All 2 branches missed.">		if (recaptchaResponse.getScore() &lt; scoreToApply) {</span>
+<span class="nc" id="L140">			throw new InvalidRecaptchaException(String.format(&quot;reCaptcha response threshold (%.1f) is less than required (%.1f)&quot;, recaptchaResponse.getScore(), scoreToApply));</span>
+		}
+<span class="nc" id="L142">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

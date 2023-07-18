@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationContextHolder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">core-config</a> &gt; <a href="../index.html" class="el_bundle">core-config</a> &gt; <a href="index.source.html" class="el_package">com.nttdata.core.context</a> &gt; <span class="el_source">ApplicationContextHolder.java</span></div><h1>ApplicationContextHolder.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2023 NTT DATA, All Rights Reserved
+ *******************************************************************************/
+package com.nttdata.core.context;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+/**
+ * Implements spring application context static access using {@link ApplicationContextAware}.&lt;br&gt;
+ * Uses internal static classes with one instance class
+ * of type {@link InnerContextResource} inside {@link SpringContextHolder} 
+ * that allows get the context between static and instance variables.
+ * 
+ * @author NTT DATA
+ * @since 0.0.1
+ */
+<span class="fc" id="L18">public final class ApplicationContextHolder implements ApplicationContextAware {</span>
+
+    /** Allow static access to {@link InnerContextResource} */
+    private static class SpringContextHolder {
+
+        /** Inner context resource containing application context */
+<span class="fc" id="L24">        private static final InnerContextResource INNER_CONTEXT = new InnerContextResource();</span>
+
+        /** Prevent class instantiation */
+        private SpringContextHolder() {
+            super();
+        }
+    }
+    
+    /** Inner context resource containing application context instance */
+    private static final class InnerContextResource {
+
+        /** spring application context */
+        private ApplicationContext context;
+        
+        /** Prevent class instantiation */
+        private InnerContextResource() {
+            super();
+        }
+
+        /**
+         * Set the application context
+         * @param context {@link ApplicationContext}
+         */
+        private void setContext(ApplicationContext context) {
+<span class="fc" id="L48">            this.context = context;</span>
+<span class="fc" id="L49">        }</span>
+    }
+
+    /**
+     * Get the current application context
+     * @return {@link ApplicationContext}
+     */
+    public static ApplicationContext getApplicationContext() {
+<span class="fc" id="L57">        return SpringContextHolder.INNER_CONTEXT.context;</span>
+    }
+
+    /**
+     * Set the current application context
+     * @param ac {@link ApplicationContext}
+     */
+    @Override
+    public void setApplicationContext(ApplicationContext ac) {
+<span class="fc" id="L66">    	SpringContextHolder.INNER_CONTEXT.setContext(ac);</span>
+<span class="fc" id="L67">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

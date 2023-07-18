@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nttdata.core.profiles.mapper.ProfileMapper">
+    
+    <resultMap id="simpleResultMap" type="com.nttdata.core.profiles.model.Profile">
+        <id column="PROFILE_ID" property="id" />
+        <result column="NAME" property="name" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="IS_DEFAULT" property="isDefault" />
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.profiles.model.Profile" id="fullResultMap" extends="simpleResultMap">
+		<collection property="authorities" javaType="ArrayList" column="PROFILE_ID" ofType="com.nttdata.core.authorities.model.Authority" select="com.nttdata.core.authorities.mapper.AuthorityMapper.findAuthoritiesByProfileId" />
+    </resultMap>
+    
+    <resultMap type="com.nttdata.core.profiles.model.ProfilePage" id="paginableResultMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="simpleResultMap" />
+    </resultMap>
+    
+    <select id="find" parameterType="com.nttdata.core.profiles.model.Profile" resultMap="fullResultMap">
+    	SELECT
+    		PROFILE_ID, NAME, DESCRIPTION, IS_DEFAULT
+    	FROM 
+    		core_PROFILES
+        WHERE PROFILE_ID = #{id}
+    </select>
+    
+    <sql id="searchSQL">
+    	SELECT
+    		PROFILE_ID, NAME, DESCRIPTION, IS_DEFAULT
+    	FROM core_PROFILES
+    	<where>
+    		<if test="null != filters">
+	    		<if test="null != filters.description and !filters.description.isEmpty()">
+					AND <include refid="BASE.translate1" /> DESCRIPTION <include refid="BASE.translate2_Aproximado" /> #{filters.description} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.name and !filters.name.isEmpty()">
+					AND <include refid="BASE.translate1" /> NAME <include refid="BASE.translate2_Aproximado" /> #{filters.name} <include refid="BASE.translate3_Aproximado" />
+				</if>
+    		</if>
+    	</where>
+    </sql>
+    
+    <select id="search" parameterType="com.nttdata.core.profiles.model.ProfilePage" resultMap="paginableResultMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    <select id="export" parameterType="com.nttdata.core.profiles.model.ProfilePage" resultMap="simpleResultMap">
+    	<include refid="searchSQL" />
+    </select>
+    
+    <insert id="insert" parameterType="com.nttdata.core.profiles.model.Profile">
+    	<selectKey order="BEFORE" keyProperty="id" resultType="long">
+			SELECT nextval('sq_core_profiles')
+    	</selectKey>
+    	INSERT INTO core_profiles (PROFILE_ID, NAME, DESCRIPTION, IS_DEFAULT) values (#{id}, #{name}, #{description}, #{isDefault})
+    </insert>
+    
+    <update id="update" parameterType="com.nttdata.core.profiles.model.Profile">
+    	UPDATE
+    		core_profiles
+    	SET
+    		NAME = #{name},
+    		DESCRIPTION = #{description},
+    		IS_DEFAULT = #{isDefault}
+    	WHERE
+    		profile_id = #{id}
+    </update>
+    
+    <delete id="delete" parameterType="com.nttdata.core.profiles.model.Profile">
+    	DELETE FROM core_profiles where profile_id = #{id}
+    </delete>
+    
+    <select id="findProfilesByAuthorityId" resultMap="simpleResultMap">
+		SELECT
+    		P.PROFILE_ID, NAME
+    	FROM 
+    		core_PROFILES P
+    	INNER JOIN
+    		core_PROFILE_AUTHORITIES PA ON P.PROFILE_ID = PA.PROFILE_ID
+        WHERE PA.AUTHORITY_ID = #{AUTHORITY_ID}
+    </select>
+
+</mapper>
