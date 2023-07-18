@@ -5,20 +5,21 @@ import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nttdata.biblioteca.biblio.mapper.BiblioService;
-import com.nttdata.bootcamp.demo.model.Demo;
-import com.nttdata.bootcamp.demo.model.DemoPage;
+import com.nttdata.biblioteca.biblio.model.Libro;
+import com.nttdata.biblioteca.biblio.model.LibroPage;
+import com.nttdata.biblioteca.biblio.service.BiblioService;
 import com.nttdata.core.crud.service.CrudService;
 import com.nttdata.core.crud.web.CrudController;
 
 @RestController
-@RequestMapping("/biblio")
-public class BiblioController implements CrudController<Demo, DemoPage> {
+@RequestMapping("/biblioteca")
+public class BiblioController implements CrudController<Libro, LibroPage> {
 
 	@Autowired
 	private BiblioService service;
+
 	@Override
-	public CrudService<Demo> getService() {
+	public CrudService<Libro> getService() {
 		// TODO Auto-generated method stub
 		return this.service;
 	}
@@ -34,5 +35,7 @@ public class BiblioController implements CrudController<Demo, DemoPage> {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+
 
 }

@@ -4,7 +4,7 @@ import org.springframework.validation.Errors;
 
 import com.nttdata.core.crud.web.CrudValidator;
 
-public class BiblioValidator extends CrudValidator {
+public class LibroValidator extends CrudValidator {
 
 	@Override
 	public boolean supports(Class<?> clazz) {
@@ -18,4 +18,6 @@ public class BiblioValidator extends CrudValidator {
 		
 	}
 
-}
+
+		
+	}

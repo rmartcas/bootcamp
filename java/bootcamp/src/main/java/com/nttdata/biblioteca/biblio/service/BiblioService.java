@@ -1,8 +1,8 @@
 package com.nttdata.biblioteca.biblio.service;
 
-import com.nttdata.bootcamp.demo.model.Demo;
+import com.nttdata.biblioteca.biblio.model.Libro;
 import com.nttdata.core.crud.service.CrudService;
 
-public interface BiblioService extends CrudService<Demo> {
+public interface BiblioService extends CrudService<Libro> {
 
 }
