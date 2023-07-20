@@ -3,7 +3,7 @@ package com.nttdata.bootcamp.biblioteca.service;
 import com.nttdata.bootcamp.biblioteca.model.Libro;
 import com.nttdata.core.crud.service.CrudService;
 
-public interface BiblioService  extends CrudService<Libro>{
+public interface BiblioService extends CrudService<Libro> {
 	
 	
 }

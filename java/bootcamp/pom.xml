@@ -50,15 +50,6 @@
 			<scope>provided</scope>
 		</dependency>
 		
-		<!-- Dependencias para test -->
-		<dependency>
-			<groupId>com.nttdata</groupId>
-			<artifactId>core-config</artifactId>
-			<version>0.0.1</version>
-			<scope>test</scope>
-			<type>test-jar</type>
-		</dependency>
-		
 		<dependency>
     		<groupId>org.springframework.boot</groupId>
     		<artifactId>spring-boot-starter-test</artifactId>
@@ -239,5 +230,36 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.nttdata</groupId>
+			<artifactId>core-config</artifactId>
+			<version>0.0.1</version>
+			<scope>test</scope>
+			<type>test-jar</type>
+		</dependency>
 	</dependencies>
+	
+	<profiles>
+		<profile>
+			<id>test-profile</id>
+			<activation>
+				<property>
+					<name>maven.test.skip</name>
+					<value>false</value>
+				</property>
+			</activation>
+			<dependencies>
+				<!-- Dependencias para test -->
+				<dependency>
+					<groupId>com.nttdata</groupId>
+					<artifactId>core-config</artifactId>
+					<version>0.0.1</version>
+					<scope>test</scope>
+					<type>test-jar</type>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+	
 </project>
