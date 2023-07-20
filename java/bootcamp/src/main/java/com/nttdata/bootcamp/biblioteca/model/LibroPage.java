@@ -9,5 +9,6 @@ public class LibroPage  extends Page<Libro>{/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
+	
+	
 }

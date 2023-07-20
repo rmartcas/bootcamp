@@ -7,5 +7,7 @@ import com.nttdata.core.crud.mapper.CrudMapper;
 
 @Mapper
 public interface BiblioMapper extends CrudMapper<Libro>{
+	
+		
 
 }
