@@ -1,16 +1,26 @@
 package com.nttdata.bootcamp.biblioteca.web;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertNotNull;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-class BiblioControllerTest {
+import com.nttdata.bootcamp.biblioteca.service.BiblioService;
 
+@ExtendWith(MockitoExtension.class)
+public class BiblioControllerTest {
+
+	@InjectMocks
+	BiblioController controller;
+	
+	@Mock
+	private BiblioService service;
+	
 	@Test
 	void testGetService() {
-		fail("Not yet implemented");
+		assertNotNull(controller.getService());
 	}
-
-	
-
 }

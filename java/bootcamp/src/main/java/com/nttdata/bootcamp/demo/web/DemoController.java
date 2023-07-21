@@ -1,7 +1,6 @@
 package com.nttdata.bootcamp.demo.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +15,7 @@ import com.nttdata.core.crud.web.CrudController;
 @RequestMapping("/demo")
 public class DemoController implements CrudController<Demo, DemoPage>{
 
-	@Qualifier("DemoServiceImpl")
+
 	@Autowired
 	private DemoService service;
 	

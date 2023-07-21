@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.nttdata.bootcamp.biblioteca.mapper.BiblioMapper">
-    <!-- NO SE QUE HAY QUE CAMBIAR -->
     
     <resultMap id="findResultMap" type="com.nttdata.bootcamp.biblioteca.model.Libro">
         <id column="id_libro" property="id" />
@@ -38,6 +37,7 @@
     
      <select id="find" parameterType="com.nttdata.bootcamp.biblioteca.model.Libro" resultMap="findResultMap">
     	SELECT id_libro, titulo, id_autor, nombre
+    	
     	FROM libro l
     	JOIN autor a ON a.id_autor=l.id_autor
         WHERE id_libro = #{id}

@@ -5,7 +5,7 @@ import com.nttdata.core.common.model.Core;
 import lombok.Data;
 
 @Data
-public class Libro extends Core<String>{
+public class Libro extends Core<Long>{
 
 	
 	/**
