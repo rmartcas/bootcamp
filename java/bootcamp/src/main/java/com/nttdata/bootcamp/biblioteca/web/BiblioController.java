@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nttdata.bootcamp.biblioteca.model.Libro;
-import com.nttdata.bootcamp.biblioteca.model.PageLibro;
+import com.nttdata.bootcamp.biblioteca.model.LibroPage;
 import com.nttdata.bootcamp.biblioteca.service.BiblioService;
 import com.nttdata.core.crud.service.CrudService;
 import com.nttdata.core.crud.web.CrudController;
 
 @RestController
 @RequestMapping("/biblioteca")
-public class BiblioController implements CrudController<Libro, PageLibro> {
+public class BiblioController implements CrudController<Libro, LibroPage> {
 
 	@Override
 	public CrudService<Libro> getService() {

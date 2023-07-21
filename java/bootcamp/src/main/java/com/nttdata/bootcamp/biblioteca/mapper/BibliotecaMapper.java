@@ -6,7 +6,7 @@ import com.nttdata.bootcamp.biblioteca.model.Libro;
 import com.nttdata.core.crud.mapper.CrudMapper;
 
 @Mapper
-public interface BiblioMapper extends CrudMapper<Libro>  {
+public interface BibliotecaMapper extends CrudMapper<Libro>  {
 
 }
 

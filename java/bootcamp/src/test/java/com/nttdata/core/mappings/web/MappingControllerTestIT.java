@@ -88,7 +88,7 @@ class MappingControllerTestIT extends BaseTest {
 		assertNotNull(result);
 		assertEquals(10, result.getSize());
 		assertEquals(1, result.getCurrentPage());
-		assertEquals(67, result.getRecords().size());
+		assertEquals(82, result.getRecords().size());
 	}
 	
 	@Test
@@ -113,7 +113,7 @@ class MappingControllerTestIT extends BaseTest {
 		assertNotNull(result);
 		assertEquals(10, result.getSize());
 		assertEquals(1, result.getCurrentPage());
-		assertEquals(67, result.getRecords().size());
+		assertEquals(82, result.getRecords().size());
 	}
 	
 	@Test

@@ -2,7 +2,7 @@ package com.nttdata.bootcamp.biblioteca.web;
 
 import org.springframework.validation.Errors;
 
-import com.nttdata.bootcamp.biblioteca.model.PageLibro;
+import com.nttdata.bootcamp.biblioteca.model.LibroPage;
 import com.nttdata.core.crud.web.CrudValidator;
 
 public class PageValidator extends CrudValidator {
@@ -10,7 +10,7 @@ public class PageValidator extends CrudValidator {
 	@Override
 	public boolean supports(Class<?> clazz) {
 		// TODO Auto-generated method stub
-		return PageLibro.class.isAssignableFrom(clazz);
+		return LibroPage.class.isAssignableFrom(clazz);
 	}
 
 	@Override

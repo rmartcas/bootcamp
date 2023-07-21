@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper	namespace="com.nttdata.bootcamp.biblioteca.mapper.BiblioMapper">
+<mapper	namespace="com.nttdata.bootcamp.biblioteca.mapper.BibliotecaMapper">
 	
 	<resultMap id="findResultMap" type="com.nttdata.bootcamp.biblioteca.model.Libro">
         <id column="id_libro" property="id" />
@@ -21,9 +21,9 @@
 	
 	<insert id="insert" parameterType="com.nttdata.bootcamp.biblioteca.model.Libro">
 		<selectKey order="BEFORE" keyProperty="id" resultType="Long">
-			SELECT nectval('sq_libros)
+			SELECT nextval('sq_libros')
 		</selectKey>
-		INSERT INTO libro(id_libro, titulo, id_autor) values (#{id}, #{titulo}, {#autor.id})
+		INSERT INTO libro(id_libro, titulo, id_autor) values (#{id}, #{nombre}, #{autor.id})
 	</insert>
 	
 	<select id="find" parameterType="com.nttdata.bootcamp.biblioteca.model.Libro">
@@ -53,10 +53,6 @@
     		</if>
     	</where>
     </sql>
-    
-    <select id="search" parameterType="com.nttdata.core.authorities.model.AuthorityPage" resultMap="paginableResultMap">
-    	<include refid="searchSQL" />
-    </select>
     
     <select id="search" parameterType="com.nttdata.bootcamp.biblioteca.model.LibroPage" resultMap="paginableResultMap">
     	<include refid="searchSQL" />

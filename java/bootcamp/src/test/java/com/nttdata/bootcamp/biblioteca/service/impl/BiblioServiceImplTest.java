@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.nttdata.bootcamp.biblioteca.mapper.BiblioMapper;
+import com.nttdata.bootcamp.biblioteca.mapper.BibliotecaMapper;
 
 @ExtendWith(MockitoExtension.class)
 class BiblioServiceImplTest {
@@ -17,7 +17,7 @@ class BiblioServiceImplTest {
 	private BiblioServiceImpl service;
 	
 	@Mock
-	private BiblioMapper mapper;
+	private BibliotecaMapper mapper;
 	
 	@Test
 	void testGetMapper() {
