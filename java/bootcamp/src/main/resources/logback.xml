@@ -77,7 +77,7 @@
 	</logger>
 	
 	<root level="DEBUG">
-		<appender-ref ref="ASYNC-CONSOLE" />
-<!-- 		<appender-ref ref="ASYNC-FILE" /> -->
+<!--		<appender-ref ref="ASYNC-CONSOLE" />-->
+			<appender-ref ref="ASYNC-FILE" />
 	</root>
 </configuration>
