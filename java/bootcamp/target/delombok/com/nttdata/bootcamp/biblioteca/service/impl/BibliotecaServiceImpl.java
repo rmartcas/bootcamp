@@ -1,10 +1,25 @@
 package com.nttdata.bootcamp.biblioteca.service.impl;
 
-import com.nttdata.bootcamp.biblioteca.model.Biblioteca;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.nttdata.bootcamp.biblioteca.mapper.BibliotecaMapper;
+import com.nttdata.bootcamp.biblioteca.model.Libro;
 import com.nttdata.bootcamp.biblioteca.service.BibliotecaService;
 import com.nttdata.core.crud.mapper.CrudMapper;
 
-public class BibliotecaServiceImpl{
+@Service
+public class BibliotecaServiceImpl implements BibliotecaService{
+	
+	@Autowired
+	private BibliotecaMapper mapper;
+
+	@Override
+	public CrudMapper<Libro> getMapper() {
+		// TODO Auto-generated method stub
+		return mapper;
+	}
 
 	
 

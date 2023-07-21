@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nttdata.bootcamp.biblioteca.mapper.BibliotecaMapper">
+
+
+	 <resultMap id="simpleResultMap" type="com.nttdata.bootcamp.biblioteca.model.Libro">
+        <id column="AUTHORITY_ID" property="id" />
+        <result column="NAME" property="name" />
+        <result column="DESCRIPTION" property="description" />
+    </resultMap>
+    
+        <resultMap type="com.nttdata.bootcamp.biblioteca.model.Libro" id="fullResultMap" extends="simpleResultMap">
+		<collection property="profiles" javaType="ArrayList" column="AUTHORITY_ID" ofType="com.nttdata.core.profiles.model.Profile" select="com.nttdata.core.profiles.mapper.ProfileMapper.findProfilesByAuthorityId" />
+    </resultMap>
+    
+    <resultMap type="com.nttdata.bootcamp.biblioteca.model.LibroPage" id="paginableResultMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="simpleResultMap" />
+    </resultMap>
+    
+  <insert id="insert" parameterType="com.nttdata.bootcamp.biblioteca.model.Libro">
+    	<selectKey order="BEFORE" keyProperty="id" resultType="long">
+			SELECT nextval('sq_core_authorities')
+    	</selectKey>
+    	INSERT INTO core_AUTHORITIES (AUTHORITY_ID, NAME, DESCRIPTION) values (#{id}, #{name}, #{description})
+    </insert>
+    
+        <update id="update" parameterType="com.nttdata.bootcamp.biblioteca.model.Libro">
+    	UPDATE
+    		core_AUTHORITIES
+    	SET
+    		NAME = #{name},
+    		DESCRIPTION = #{description}
+    	WHERE
+    		AUTHORITY_ID = #{id}
+    </update>
+     
+    
+     <delete id="delete" parameterType="com.nttdata.bootcamp.biblioteca.model.Libro">
+    	DELETE FROM core_AUTHORITIES where AUTHORITY_ID = #{id}
+    </delete>
+    
+    </mapper>
