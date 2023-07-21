@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.nttdata.bootcamp.biblioteca.autor.mapper.AutorMapper" >	
+	
+	<resultMap id="simpleResultMap" type="com.nttdata.bootcamp.biblioteca.autor.model.Autor">
+        <id column="AUTOR_ID" property="id" />
+        <result column="NAME" property="name" />
+    </resultMap>
+    
+  
+    <resultMap type="com.nttdata.bootcamp.biblioteca.autor.model.AutorPage" id="paginableResultMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="simpleResultMap" />
+    </resultMap>
+    
+    <insert id="insert" parameterType="com.nttdata.bootcamp.biblioteca.autor.model.Autor">
+    	<selectKey order="BEFORE" keyProperty="id" resultType="long">
+			SELECT nextval('sq_autored')
+    	</selectKey>
+    	INSERT INTO AUTORES_GOOD (AUTOR_ID, NAME) values (#{id}, #{name})
+    </insert>
+    
+    <delete id="delete">
+    	DELETE FROM AUTORES_GOOD WHERE AUTOR_ID=#{id}
+    </delete>
+    
+    <update id="update">
+    	UPDATE AUTORES_GOOD
+    		SET NAME=#{name}
+    		WHERE AUTOR_ID=#{id}
+    </update>
+    
+    <select id="find" parameterType="com.nttdata.bootcamp.biblioteca.autor.model.Autor" resultMap="simpleResultMap">
+    	SELECT AUTOR_ID, NAME
+    	FROM AUTORES_GOOD 
+    	WHERE AUTOR_ID=#{id}
+    </select>
+
+    
+    
+</mapper>

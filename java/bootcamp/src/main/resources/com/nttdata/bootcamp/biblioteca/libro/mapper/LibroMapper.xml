@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.1//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.nttdata.bootcamp.biblioteca.libro.mapper.LibroMapper" >	
+	
+	<resultMap id="simpleResultMap" type="com.nttdata.bootcamp.biblioteca.libro.model.Libro">
+        <id column="LIBRO_ID" property="id" />
+        <result column="TITULO" property="titulo" />
+        <result column="AUTOR_ID" property="autor.id" />
+        <result column="NAME" property="autor.nombre" />
+    </resultMap>
+    
+  
+    <resultMap type="com.nttdata.bootcamp.biblioteca.libro.model.LibroPage" id="paginableResultMap" extends="BASE.baseSearchResultMap">
+    	<collection property="records" resultMap="simpleResultMap" />
+    </resultMap>
+    
+    <insert id="insert" parameterType="com.nttdata.bootcamp.biblioteca.libro.model.Libro">
+    	<selectKey order="BEFORE" keyProperty="id" resultType="long">
+			SELECT nextval('sq_libros')
+    	</selectKey>
+    	INSERT INTO LIBROS_GOOD (LIBRO_ID, TITULO, AUTOR_ID) values (#{id}, #{titulo}, #{autor.id})
+    </insert>
+    
+    <delete id="delete">
+    	DELETE FROM LIBROS_GOOD WHERE LIBRO_ID=#{id}
+    </delete>
+    
+    <update id="update">
+    	UPDATE LIBROS_GOOD
+    		SET TITULO=#{titulo}, AUTOR_ID=#{autor.id}
+    		WHERE LIBRO_ID=#{id}
+    </update>
+    
+    <select id="find" parameterType="com.nttdata.bootcamp.biblioteca.libro.model.Libro" resultMap="simpleResultMap">
+    	SELECT LIBRO_ID, TITULO, AG.AUTOR_ID, NAME
+    	FROM LIBROS_GOOD as LG
+    	JOIN AUTORES_GOOD as AG
+    	ON LG.AUTOR_ID=AG.AUTOR_ID
+    	WHERE LIBRO_ID=#{id}
+    </select>
+    
+    <sql id="searchSQL">
+    	SELECT LIBRO_ID, TITULO, AG.AUTOR_ID, NAME 
+    	FROM LIBROS_GOOD AS LG 
+    	JOIN AUTORES_GOOD AS AG
+    	ON LG.AUTOR_ID=AG.AUTOR_ID
+    	<where>
+    		<if test="null != filters">
+	    		<if test="null != filters.titulo and !filters.titulo.isEmpty()">
+					AND <include refid="BASE.translate1" /> TITULO <include refid="BASE.translate2_Aproximado" /> #{filters.titulo} <include refid="BASE.translate3_Aproximado" />
+				</if>
+				<if test="null != filters.autor.name and !filters.autor.name.isEmpty()">
+					AND <include refid="BASE.translate1" /> NAME <include refid="BASE.translate2_Aproximado" /> #{filters.autor.name} <include refid="BASE.translate3_Aproximado" />
+				</if>
+    		</if>
+    	</where>
+    </sql>
+     <select id="search" parameterType="com.nttdata.bootcamp.biblioteca.libro.model.LibroPage" resultMap="paginableResultMap">
+		<include refid="searchSQL" />
+    </select>
+    
+    
+</mapper>
