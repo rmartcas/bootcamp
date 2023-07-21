@@ -37,7 +37,7 @@
     
     
      <select id="find" parameterType="com.nttdata.bootcamp.biblioteca.model.Libro" resultMap="findResultMap">
-    	SELECT id_libro, titulo, id_autor, nombre
+    	SELECT id_libro, titulo, a.id_autor, a.nombre
     	FROM libro l
     	JOIN autor a ON a.id_autor=l.id_autor
         WHERE id_libro = #{id}

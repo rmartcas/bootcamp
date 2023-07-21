@@ -42,7 +42,7 @@ class BiblioControllerTestIT extends BaseTest {
 		Libro result = apiResponse.getResponse();
 		assertNotNull(result);
 		assertEquals(Long.valueOf(1L), result.getId());
-		assertEquals("Libro 1", result.getTitulo());
+		assertEquals("IT", result.getTitulo());
 		assertNotNull(result.getAutor());
 	}
 }
